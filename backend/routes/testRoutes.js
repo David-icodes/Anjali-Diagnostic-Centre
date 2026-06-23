@@ -11,14 +11,13 @@ const {
   getPopularTests,
 } = require('../controllers/testController');
 const { protect, admin } = require('../middleware/auth');
-const { upload } = require('../config/cloudinary');
 
 router.get('/', getTests);
 router.get('/categories', getCategories);
 router.get('/popular', getPopularTests);
 router.get('/:id', getTestById);
-router.post('/', protect, admin, upload.single('image'), createTest);
-router.put('/:id', protect, admin, upload.single('image'), updateTest);
+router.post('/', protect, admin, createTest);
+router.put('/:id', protect, admin, updateTest);
 router.delete('/:id', protect, admin, deleteTest);
 router.patch('/:id/toggle', protect, admin, toggleTestStatus);
 

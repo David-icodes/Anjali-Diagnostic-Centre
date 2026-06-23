@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { Loader2 } from 'lucide-react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
@@ -10,9 +10,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter()
   const pathname = usePathname()
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
 
   const isLoginPage = pathname === '/admin/login'
+
+  useEffect(() => {
+    const saved = localStorage.getItem('adminSidebarCollapsed')
+    if (saved === 'true') setSidebarCollapsed(true)
+  }, [])
+
+  const handleCollapse = useCallback((val: boolean) => {
+    setSidebarCollapsed(val)
+    localStorage.setItem('adminSidebarCollapsed', String(val))
+  }, [])
 
   useEffect(() => {
     const token = localStorage.getItem('token')
@@ -33,12 +44,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     )
   }
 
+  const sidebarWidth = sidebarCollapsed ? 72 : 256
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
-      <AdminHeader onMenuClick={() => setIsSidebarOpen(true)} />
-      <main className="lg:pl-64 pt-16">
-        <div className="p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-gray-50">
+      <AdminSidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        collapsed={sidebarCollapsed}
+        onCollapse={handleCollapse}
+      />
+      <AdminHeader onMenuToggle={() => setIsSidebarOpen(true)} />
+      <main
+        className="pt-14 transition-all duration-250"
+        style={{ paddingLeft: `${sidebarWidth}px` }}
+      >
+        <div className="p-4 sm:p-5">
           {children}
         </div>
       </main>

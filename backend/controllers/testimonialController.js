@@ -49,8 +49,9 @@ const deleteTestimonial = async (req, res) => {
       return res.status(404).json({ message: 'Testimonial not found' });
     }
 
-    await Testimonial.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Testimonial removed' });
+    testimonial.isActive = false;
+    await testimonial.save();
+    res.json({ message: 'Testimonial deactivated successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

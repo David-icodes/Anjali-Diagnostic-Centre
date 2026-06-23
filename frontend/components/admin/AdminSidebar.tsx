@@ -2,43 +2,64 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  LayoutDashboard,
-  FlaskConical,
-  CalendarCheck,
-  Tag,
-  Star,
-  MessageSquare,
-  Settings,
-  Users,
-  ChevronLeft,
-  ChevronRight,
-  LogOut,
-  Microscope,
+  LayoutDashboard, CalendarCheck, Settings, Users, ChevronLeft, ChevronRight, LogOut, Radio, Package, FileText, Activity, Syringe,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import toast from 'react-hot-toast'
+import { BRAND } from '@/lib/site'
 
-const navItems = [
-  { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/admin/tests', label: 'Tests', icon: FlaskConical },
-  { href: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },
-  { href: '/admin/offers', label: 'Offers', icon: Tag },
-  { href: '/admin/testimonials', label: 'Testimonials', icon: Star },
-  { href: '/admin/enquiries', label: 'Enquiries', icon: MessageSquare },
-  { href: '/admin/settings', label: 'Settings', icon: Settings },
-  { href: '/admin/users', label: 'Users', icon: Users },
+interface NavGroup {
+  label: string
+  items: { href: string; label: string; icon: any }[]
+}
+
+const navGroups: NavGroup[] = [
+  {
+    label: 'MAIN',
+    items: [
+      { href: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: 'MANAGEMENT',
+    items: [
+      { href: '/admin/users', label: 'Users', icon: Users },
+      { href: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },
+    ],
+  },
+  {
+    label: 'SERVICES',
+    items: [
+      { href: '/admin/health-packages', label: 'Health Packages', icon: Package },
+      { href: '/admin/tests', label: 'Lab Tests', icon: Syringe },
+      { href: '/admin/radiology', label: 'Radiology', icon: Radio },
+    ],
+  },
+  {
+    label: 'REPORTS',
+    items: [
+      { href: '/admin/reports', label: 'Reports', icon: FileText },
+      { href: '/admin/activity-logs', label: 'Activity Logs', icon: Activity },
+    ],
+  },
+  {
+    label: 'SYSTEM',
+    items: [
+      { href: '/admin/settings', label: 'Settings', icon: Settings },
+    ],
+  },
 ]
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }: { isOpen?: boolean; onClose?: () => void; collapsed?: boolean; onCollapse?: (val: boolean) => void }) {
   const pathname = usePathname()
   const router = useRouter()
-  const [collapsed, setCollapsed] = useState(false)
-  const [user, setUser] = useState<{ name: string; email: string; avatar?: string } | null>(null)
+  const [user, setUser] = useState<{ name: string; email: string; role?: string; avatar?: string } | null>(null)
 
   useEffect(() => {
     try {
@@ -54,124 +75,107 @@ export default function AdminSidebar() {
     router.push('/admin/login')
   }
 
+  const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+
   return (
-    <motion.aside
-      animate={{ width: collapsed ? 72 : 260 }}
-      transition={{ duration: 0.3, ease: 'easeInOut' }}
-      className="fixed left-0 top-0 h-screen z-40 flex flex-col bg-white border-r border-gray-200 shadow-sm overflow-hidden"
-    >
-      <div className="flex items-center gap-3 px-4 h-16 border-b border-gray-100 shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 flex items-center justify-center shadow-md shrink-0">
-          <Microscope className="w-5 h-5 text-white" />
-        </div>
-        <AnimatePresence>
-          {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0, width: 0 }}
-              animate={{ opacity: 1, width: 'auto' }}
-              exit={{ opacity: 0, width: 0 }}
-              className="overflow-hidden whitespace-nowrap"
-            >
-              <p className="text-sm font-bold text-brand-950 leading-tight">Anjali Diagnostic</p>
-              <p className="text-[10px] text-brand-600 font-medium leading-tight">Admin Panel</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-          return (
-            <Link key={item.href} href={item.href}>
-              <motion.div
-                whileHover={{ x: 2 }}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-200 relative',
-                  isActive
-                    ? 'text-brand-700 bg-brand-50'
-                    : 'text-gray-500 hover:text-brand-600 hover:bg-brand-50/50'
-                )}
-              >
-                {isActive && (
-                  <motion.span
-                    layoutId="sidebarActive"
-                    className="absolute inset-0 rounded-xl bg-brand-50 border border-brand-100"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                  />
-                )}
-                <item.icon className="w-5 h-5 shrink-0 relative z-10" />
-                <AnimatePresence>
-                  {!collapsed && (
-                    <motion.span
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="relative z-10"
-                    >
-                      {item.label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </Link>
-          )
-        })}
-      </nav>
-
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="hidden lg:flex items-center justify-center h-8 mx-2 mb-2 rounded-lg text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-all"
+    <>
+      {isOpen && <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={onClose} />}
+      <motion.aside
+        initial={false}
+        animate={{ width: collapsed ? 72 : 256 }}
+        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        className={cn(
+          'fixed left-0 top-0 h-screen z-40 flex flex-col bg-white border-r border-gray-200 overflow-hidden',
+          isOpen !== undefined && 'lg:translate-x-0'
+        )}
       >
-        {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-      </button>
-
-      <div className="border-t border-gray-100 p-3 shrink-0">
-        <div className={cn('flex items-center gap-3', collapsed && 'justify-center')}>
-          <Avatar className="w-9 h-9 shrink-0 ring-2 ring-brand-100">
-            <AvatarImage src={user?.avatar} />
-            <AvatarFallback className="bg-brand-50 text-brand-700 text-xs font-semibold">
-              {user?.name?.charAt(0) || 'A'}
-            </AvatarFallback>
-          </Avatar>
+        <div className="flex items-center gap-3 px-4 h-14 border-b border-gray-100 shrink-0 bg-gradient-to-r from-brand-600 to-brand-500">
+          <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-white/20 bg-white shrink-0">
+            <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-1" sizes="36px" />
+          </div>
           <AnimatePresence>
             {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex-1 min-w-0"
-              >
-                <p className="text-sm font-medium text-gray-900 truncate">{user?.name || 'Admin'}</p>
-                <p className="text-xs text-gray-500 truncate">{user?.email || 'admin@anjali.com'}</p>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="overflow-hidden whitespace-nowrap">
+                <p className="text-sm font-bold text-white leading-tight">{BRAND.name}</p>
+                <p className="text-[9px] text-white/70 font-medium leading-tight">Administration Panel</p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLogout}
-          className={cn(
-            'w-full mt-2 text-gray-500 hover:text-red-600 hover:bg-red-50',
-            collapsed && 'px-0'
-          )}
-        >
-          <LogOut className="w-4 h-4 shrink-0" />
-          <AnimatePresence>
-            {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="ml-2"
-              >
-                Logout
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </Button>
-      </div>
-    </motion.aside>
+
+        <nav className="flex-1 py-3 px-2 overflow-y-auto overflow-x-hidden scrollbar-thin">
+          {navGroups.map((group) => (
+            <div key={group.label} className="mb-4 last:mb-0">
+              <AnimatePresence>
+                {!collapsed && (
+                  <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="px-3 mb-1 text-[10px] font-semibold tracking-widest text-gray-400 uppercase"
+                  >
+                    {group.label}
+                  </motion.p>
+                )}
+              </AnimatePresence>
+              <div className="space-y-0.5">
+                {group.items.map((item) => {
+                  const active = isActive(item.href)
+                  return (
+                    <Link key={item.href} href={item.href}>
+                      <div
+                        className={cn(
+                          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
+                          active
+                            ? 'text-brand-700 bg-brand-50 border border-brand-100'
+                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-transparent'
+                        )}
+                      >
+                        <item.icon className={cn('w-4.5 h-4.5 shrink-0', active ? 'text-brand-600' : 'text-gray-400')} />
+                        <AnimatePresence>
+                          {!collapsed && (
+                            <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                              {item.label}
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        <div className="border-t border-gray-100 shrink-0">
+          <button
+            onClick={() => onCollapse?.(!collapsed)}
+            className="hidden lg:flex items-center justify-center w-full h-8 text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-all"
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+          <div className={cn('flex items-center gap-3 p-3', collapsed && 'justify-center')}>
+            <Avatar className="w-8 h-8 shrink-0 ring-2 ring-brand-100">
+              <AvatarImage src={user?.avatar} />
+              <AvatarFallback className="bg-brand-50 text-brand-700 text-xs font-semibold">
+                {user?.name?.charAt(0) || 'A'}
+              </AvatarFallback>
+            </Avatar>
+            <AnimatePresence>
+              {!collapsed && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-gray-900 truncate leading-tight">{user?.name || 'Admin'}</p>
+                  <p className="text-[10px] text-gray-400 truncate">{user?.role || 'Administrator'}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <Button variant="ghost" size="sm" onClick={handleLogout}
+            className={cn('w-full rounded-none h-9 text-gray-400 hover:text-red-600 hover:bg-red-50 text-xs', collapsed && 'px-0')}
+          >
+            <LogOut className="w-3.5 h-3.5 shrink-0" />
+            <AnimatePresence>{!collapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="ml-2">Sign Out</motion.span>}</AnimatePresence>
+          </Button>
+        </div>
+      </motion.aside>
+    </>
   )
 }

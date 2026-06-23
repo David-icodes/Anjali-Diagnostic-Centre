@@ -3,10 +3,7 @@ const Enquiry = require('../models/Enquiry');
 const createEnquiry = async (req, res) => {
   try {
     const enquiry = await Enquiry.create(req.body);
-    res.status(201).json({
-      success: true,
-      message: 'Your enquiry has been submitted successfully. We will contact you soon.',
-    });
+    res.status(201).json({ success: true, enquiry, message: 'Enquiry submitted successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -14,10 +11,17 @@ const createEnquiry = async (req, res) => {
 
 const getEnquiries = async (req, res) => {
   try {
-    const { isRead, page = 1, limit = 10 } = req.query;
-    const query = {};
+    const { isRead, search, page = 1, limit = 20 } = req.query;
+    const query = { isArchived: false };
 
     if (isRead !== undefined) query.isRead = isRead === 'true';
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { mobileNumber: { $regex: search, $options: 'i' } },
+      ];
+    }
 
     const total = await Enquiry.countDocuments(query);
     const enquiries = await Enquiry.find(query)
@@ -44,9 +48,9 @@ const markAsRead = async (req, res) => {
       return res.status(404).json({ message: 'Enquiry not found' });
     }
 
-    enquiry.isRead = true;
-    await enquiry.save();
-    res.json({ message: 'Enquiry marked as read' });
+    enquiry.isRead = !enquiry.isRead;
+    const updated = await enquiry.save();
+    res.json(updated);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -60,8 +64,10 @@ const deleteEnquiry = async (req, res) => {
       return res.status(404).json({ message: 'Enquiry not found' });
     }
 
-    await Enquiry.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Enquiry removed' });
+    enquiry.isArchived = true;
+    enquiry.archivedAt = new Date();
+    await enquiry.save();
+    res.json({ message: 'Enquiry archived successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -71,6 +77,7 @@ const getEnquiryStats = async (req, res) => {
   try {
     const total = await Enquiry.countDocuments();
     const unread = await Enquiry.countDocuments({ isRead: false });
+
     res.json({ total, unread });
   } catch (error) {
     res.status(500).json({ message: error.message });

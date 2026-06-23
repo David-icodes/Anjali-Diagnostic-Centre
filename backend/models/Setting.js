@@ -2,26 +2,6 @@ const mongoose = require('mongoose');
 
 const settingSchema = mongoose.Schema(
   {
-    siteName: {
-      type: String,
-      default: 'Anjali Diagnostic Centre',
-    },
-    tagline: {
-      type: String,
-      default: 'Your Health, Our Priority',
-    },
-    logo: {
-      type: String,
-      default: '',
-    },
-    logoPublicId: {
-      type: String,
-      default: '',
-    },
-    favicon: {
-      type: String,
-      default: '',
-    },
     address: {
       type: String,
       default: '',
@@ -71,22 +51,6 @@ const settingSchema = mongoose.Schema(
       default: '',
     },
     mission: {
-      type: String,
-      default: '',
-    },
-    heroTitle: {
-      type: String,
-      default: 'Advanced Diagnostic Care You Can Trust',
-    },
-    heroSubtitle: {
-      type: String,
-      default: 'State-of-the-art laboratory with accurate results, care, and compassion.',
-    },
-    heroBanner: {
-      type: String,
-      default: '',
-    },
-    heroBannerPublicId: {
       type: String,
       default: '',
     },

@@ -27,9 +27,11 @@ export const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     'Pending': 'bg-yellow-100 text-yellow-800',
     'Confirmed': 'bg-blue-100 text-blue-800',
+    'Assigned': 'bg-sky-100 text-sky-800',
     'Sample Collection Scheduled': 'bg-purple-100 text-purple-800',
     'Sample Collected': 'bg-indigo-100 text-indigo-800',
     'Processing': 'bg-orange-100 text-orange-800',
+    'Report Uploaded': 'bg-green-100 text-green-800',
     'Report Ready': 'bg-green-100 text-green-800',
     'Completed': 'bg-emerald-100 text-emerald-800',
     'Cancelled': 'bg-red-100 text-red-800',

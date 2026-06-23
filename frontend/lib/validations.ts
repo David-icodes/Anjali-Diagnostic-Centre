@@ -11,6 +11,10 @@ export const bookingSchema = z.object({
   preferredDate: z.string().min(1, 'Please select a date'),
   preferredTime: z.string().min(1, 'Please select a time'),
   additionalNotes: z.string().optional(),
+  homeCollection: z.boolean().optional(),
+  serviceType: z.string().optional(),
+  radiologyId: z.string().optional(),
+  packageId: z.string().optional(),
 })
 
 export const enquirySchema = z.object({
@@ -21,7 +25,7 @@ export const enquirySchema = z.object({
 })
 
 export const loginSchema = z.object({
-  email: z.string().email('Enter valid email address'),
+  username: z.string().min(2, 'Enter your username or email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
 })
 

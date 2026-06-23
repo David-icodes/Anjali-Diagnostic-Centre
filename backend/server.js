@@ -15,6 +15,11 @@ const offerRoutes = require('./routes/offerRoutes');
 const testimonialRoutes = require('./routes/testimonialRoutes');
 const enquiryRoutes = require('./routes/enquiryRoutes');
 const settingRoutes = require('./routes/settingRoutes');
+const radiologyRoutes = require('./routes/radiologyRoutes');
+const healthPackageRoutes = require('./routes/healthPackageRoutes');
+const reportRoutes = require('./routes/reportRoutes');
+const activityLogRoutes = require('./routes/activityLogRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 connectDB();
 
@@ -44,21 +49,35 @@ app.use('/api/offers', offerRoutes);
 app.use('/api/testimonials', testimonialRoutes);
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/settings', settingRoutes);
+app.use('/api/radiology', radiologyRoutes);
+app.use('/api/health-packages', healthPackageRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
+app.use('/api/users', userRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
 
-const seedAdmin = async () => {
+const seedSuperAdmin = async () => {
   try {
-    const adminExists = await User.findOne({ email: process.env.ADMIN_EMAIL });
+    const adminUsername = 'admin';
+    const adminExists = await User.findOne({ username: adminUsername });
+
     if (!adminExists) {
       await User.create({
-        name: 'Admin',
-        email: process.env.ADMIN_EMAIL || 'admin@anjali.com',
-        password: process.env.ADMIN_PASSWORD || 'Admin@123',
-        role: 'admin',
+        name: 'Super Admin',
+        username: 'admin',
+        email: 'admin@anjalidiagnostic.com',
+        password: 'Anjali@123',
+        role: 'superadmin',
+        isDefault: true,
+        mobileNumber: '9876543210',
       });
-      console.log('Admin user created successfully');
+      console.log('Default super admin created successfully (admin / Anjali@123)');
+    } else if (!adminExists.isDefault) {
+      adminExists.isDefault = true;
+      await adminExists.save();
+      console.log('Existing admin marked as default super admin');
     }
   } catch (error) {
     console.error('Error seeding admin:', error.message);
@@ -69,5 +88,5 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
-  seedAdmin();
+  seedSuperAdmin();
 });

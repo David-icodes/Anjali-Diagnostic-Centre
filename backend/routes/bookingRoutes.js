@@ -9,14 +9,15 @@ const {
   deleteBooking,
   getBookingStats,
 } = require('../controllers/bookingController');
-const { protect, admin } = require('../middleware/auth');
+const { protect, admin, adminOnly } = require('../middleware/auth');
 
 router.post('/', createBooking);
+router.get('/track', trackBooking);
 router.post('/track', trackBooking);
 router.get('/stats', protect, admin, getBookingStats);
 router.get('/', protect, admin, getBookings);
 router.get('/:id', protect, admin, getBookingById);
 router.put('/:id/status', protect, admin, updateBookingStatus);
-router.delete('/:id', protect, admin, deleteBooking);
+router.delete('/:id', protect, adminOnly, deleteBooking);
 
 module.exports = router;

@@ -48,14 +48,6 @@ const testSchema = mongoose.Schema(
       type: String,
       default: '24 Hours',
     },
-    image: {
-      type: String,
-      default: '',
-    },
-    imagePublicId: {
-      type: String,
-      default: '',
-    },
     isActive: {
       type: Boolean,
       default: true,

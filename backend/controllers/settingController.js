@@ -1,5 +1,27 @@
 const Setting = require('../models/Setting');
-const { cloudinary } = require('../config/cloudinary');
+
+const responseFields = [
+  'address',
+  'phone',
+  'email',
+  'workingHours',
+  'facebook',
+  'instagram',
+  'whatsapp',
+  'youtube',
+  'linkedin',
+  'twitter',
+  'aboutUs',
+  'vision',
+  'mission',
+];
+
+const sanitizeSettings = (settings) => (
+  responseFields.reduce((acc, field) => {
+    acc[field] = settings?.[field] || '';
+    return acc;
+  }, {})
+);
 
 const getSettings = async (req, res) => {
   try {
@@ -9,7 +31,7 @@ const getSettings = async (req, res) => {
       settings = await Setting.create({});
     }
 
-    res.json(settings);
+    res.json(sanitizeSettings(settings));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -20,40 +42,17 @@ const updateSettings = async (req, res) => {
     let settings = await Setting.findOne();
 
     if (!settings) {
-      settings = await Setting.create({});
+      settings = new Setting();
     }
 
-    const updateData = { ...req.body };
-
-    if (req.files) {
-      if (req.files.logo) {
-        if (settings.logoPublicId) {
-          await cloudinary.uploader.destroy(settings.logoPublicId);
-        }
-        updateData.logo = req.files.logo[0].path;
-        updateData.logoPublicId = req.files.logo[0].filename;
+    responseFields.forEach((field) => {
+      if (req.body[field] !== undefined) {
+        settings[field] = req.body[field];
       }
+    });
 
-      if (req.files.heroBanner) {
-        if (settings.heroBannerPublicId) {
-          await cloudinary.uploader.destroy(settings.heroBannerPublicId);
-        }
-        updateData.heroBanner = req.files.heroBanner[0].path;
-        updateData.heroBannerPublicId = req.files.heroBanner[0].filename;
-      }
-
-      if (req.files.favicon) {
-        updateData.favicon = req.files.favicon[0].path;
-      }
-    }
-
-    const updatedSettings = await Setting.findByIdAndUpdate(
-      settings._id,
-      { $set: updateData },
-      { new: true, runValidators: true }
-    );
-
-    res.json(updatedSettings);
+    const updated = await settings.save();
+    res.json(sanitizeSettings(updated));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -64,20 +63,17 @@ const updateSocialLinks = async (req, res) => {
     let settings = await Setting.findOne();
 
     if (!settings) {
-      settings = await Setting.create({});
+      settings = new Setting();
     }
 
-    const { facebook, instagram, whatsapp, youtube, linkedin, twitter } = req.body;
+    ['facebook', 'instagram', 'whatsapp', 'youtube', 'linkedin', 'twitter'].forEach((field) => {
+      if (req.body[field] !== undefined) {
+        settings[field] = req.body[field];
+      }
+    });
 
-    settings.facebook = facebook || settings.facebook;
-    settings.instagram = instagram || settings.instagram;
-    settings.whatsapp = whatsapp || settings.whatsapp;
-    settings.youtube = youtube || settings.youtube;
-    settings.linkedin = linkedin || settings.linkedin;
-    settings.twitter = twitter || settings.twitter;
-
-    const updatedSettings = await settings.save();
-    res.json(updatedSettings);
+    const updated = await settings.save();
+    res.json(sanitizeSettings(updated));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

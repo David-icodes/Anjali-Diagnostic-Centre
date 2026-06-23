@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Tag, Clock } from 'lucide-react'
-import { cn, API_URL, formatDate } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -29,8 +29,8 @@ export default function OffersSection() {
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const { data } = await api.get('/offers/active')
-        setOffers(data?.offers || data?.data || [])
+        const { data } = await api.get('/offers', { params: { isActive: true } })
+        setOffers(Array.isArray(data) ? data : data?.offers || data?.data || [])
       } catch {
         setOffers([])
       } finally {

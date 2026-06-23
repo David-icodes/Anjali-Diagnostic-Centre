@@ -2,13 +2,20 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
+import PublicLayout from '@/components/layout/PublicLayout'
+import { BRAND } from '@/lib/site'
 
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Anjali Diagnostic Centre | Advanced Diagnostic Care You Can Trust',
-  description: 'State-of-the-art diagnostic centre offering accurate test results, health checkup packages, and home sample collection services.',
-  keywords: 'diagnostic centre, medical tests, health checkup, pathology lab, blood test, full body checkup',
+  description: 'State-of-the-art diagnostic centre in Hyderabad offering 100+ lab tests, radiology services, health checkup packages with 99% accuracy and free home sample collection.',
+  keywords: 'diagnostic centre, medical tests, health checkup, pathology lab, blood test, full body checkup, radiology, MRI, CT scan, Hyderabad',
+  icons: {
+    icon: BRAND.favicon,
+    shortcut: BRAND.favicon,
+    apple: BRAND.logo,
+  },
 }
 
 export default function RootLayout({
@@ -19,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={inter.className}>
-        {children}
+        <PublicLayout>
+          {children}
+        </PublicLayout>
         <Toaster
           position="top-right"
           toastOptions={{

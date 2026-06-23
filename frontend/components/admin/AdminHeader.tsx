@@ -1,31 +1,26 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
-import { motion } from 'framer-motion'
-import { Search, Bell, Menu, ChevronRight } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Bell, Menu, Plus, ChevronDown, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Badge } from '@/components/ui/badge'
+import toast from 'react-hot-toast'
 
-const breadcrumbMap: Record<string, string> = {
-  '/admin': 'Dashboard',
-  '/admin/tests': 'Tests',
-  '/admin/bookings': 'Bookings',
-  '/admin/offers': 'Offers',
-  '/admin/testimonials': 'Testimonials',
-  '/admin/enquiries': 'Enquiries',
-  '/admin/settings': 'Settings',
-  '/admin/users': 'Users',
+const pageTitles: Record<string, string> = {
+  '/admin/dashboard': 'Dashboard',
+  '/admin/users': 'User Management',
+  '/admin/bookings': 'Booking Management',
+  '/admin/health-packages': 'Health Packages',
+  '/admin/tests': 'Lab Tests',
+  '/admin/radiology': 'Radiology Services',
+  '/admin/reports': 'Report Management',
+  '/admin/activity-logs': 'Activity Logs',
+  '/admin/settings': 'System Settings',
 }
 
 interface AdminHeaderProps {
@@ -34,84 +29,74 @@ interface AdminHeaderProps {
 
 export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
   const pathname = usePathname()
-  const [user, setUser] = useState<{ name: string; email: string; avatar?: string } | null>(null)
+  const router = useRouter()
+  const [user, setUser] = useState<{ name: string; email: string; role?: string; avatar?: string } | null>(null)
+  const [clock, setClock] = useState('')
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem('user')
       if (stored) setUser(JSON.parse(stored))
     } catch {}
+    const update = () => {
+      const now = new Date()
+      setClock(now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }))
+    }
+    update()
+    const id = setInterval(update, 30000)
+    return () => clearInterval(id)
   }, [])
 
-  const breadcrumbs = pathname
-    .split('/')
-    .filter(Boolean)
-    .reduce<{ href: string; label: string }[]>((acc, segment, i, arr) => {
-      const href = '/' + arr.slice(0, i + 1).join('/')
-      acc.push({ href, label: breadcrumbMap[href] || segment.charAt(0).toUpperCase() + segment.slice(1) })
-      return acc
-    }, [])
+  const title = Object.entries(pageTitles).find(([k]) => pathname === k || pathname.startsWith(k + '/'))?.[1] || 'Admin'
+
+  const handleLogout = () => {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    toast.success('Logged out')
+    router.push('/admin/login')
+  }
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-white/80 backdrop-blur-xl border-b border-gray-200">
+    <header className="sticky top-0 z-30 h-14 bg-white border-b border-gray-200">
       <div className="flex items-center justify-between h-full px-4 lg:px-6">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onMenuToggle}
-            className="lg:hidden text-gray-500 hover:text-brand-600"
-          >
+          <Button variant="ghost" size="icon" onClick={onMenuToggle} className="lg:hidden text-gray-500 hover:text-brand-600 -ml-2">
             <Menu className="w-5 h-5" />
           </Button>
-
-          <nav className="hidden sm:flex items-center gap-1.5 text-sm text-gray-500">
-            {breadcrumbs.map((crumb, i) => (
-              <span key={crumb.href} className="flex items-center gap-1.5">
-                {i > 0 && <ChevronRight className="w-3.5 h-3.5 text-gray-400" />}
-                <span
-                  className={cn(
-                    i === breadcrumbs.length - 1
-                      ? 'text-gray-900 font-medium'
-                      : 'hover:text-brand-600 transition-colors'
-                  )}
-                >
-                  {crumb.label}
-                </span>
-              </span>
-            ))}
-          </nav>
+          <div>
+            <h1 className="text-base font-semibold text-gray-900 leading-tight">{title}</h1>
+            <p className="text-[11px] text-gray-400 leading-tight hidden sm:block">{clock ? `${clock} IST` : ''}</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-56 lg:w-72 pl-9 pr-3 py-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:bg-white focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20 outline-none transition-all"
-            />
-          </div>
+        <div className="flex items-center gap-2">
+          <Button variant="default" size="sm" className="h-8 gap-1.5 text-xs rounded-lg bg-brand-600 hover:bg-brand-700 shadow-sm" onClick={() => router.push('/admin/bookings')}>
+            <Plus className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">New Booking</span>
+          </Button>
 
-          <Button variant="ghost" size="icon" className="relative text-gray-500 hover:text-brand-600">
-            <Bell className="w-5 h-5" />
-            <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-red-500 text-[9px] font-bold text-white flex items-center justify-center">
-              3
-            </span>
+          <Button variant="ghost" size="icon" className="relative text-gray-400 hover:text-brand-600 w-8 h-8">
+            <Bell className="w-4.5 h-4.5" />
+            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-[7px] font-bold text-white flex items-center justify-center">3</span>
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="w-8 h-8 ring-2 ring-brand-100 cursor-pointer">
+              <Button variant="ghost" className="gap-2 h-8 px-2 rounded-lg hover:bg-gray-50">
+                <Avatar className="w-7 h-7 ring-2 ring-brand-100">
                   <AvatarImage src={user?.avatar} />
-                  <AvatarFallback className="bg-brand-50 text-brand-700 text-xs font-semibold">
+                  <AvatarFallback className="bg-brand-50 text-brand-700 text-[10px] font-semibold">
                     {user?.name?.charAt(0) || 'A'}
                   </AvatarFallback>
                 </Avatar>
+                <div className="hidden md:block text-left leading-tight">
+                  <p className="text-xs font-medium text-gray-700">{user?.name || 'Admin'}</p>
+                  <p className="text-[9px] text-gray-400">{user?.role || 'Administrator'}</p>
+                </div>
+                <ChevronDown className="w-3 h-3 text-gray-400 hidden md:block" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium">{user?.name || 'Admin'}</span>
@@ -119,11 +104,10 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/admin/settings')}>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-600 focus:text-red-600">
-                Logout
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+                <LogOut className="w-3.5 h-3.5 mr-2" /> Sign Out
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

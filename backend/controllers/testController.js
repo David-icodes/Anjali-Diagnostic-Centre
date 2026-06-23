@@ -1,5 +1,4 @@
 const Test = require('../models/Test');
-const { cloudinary } = require('../config/cloudinary');
 
 const getTests = async (req, res) => {
   try {
@@ -8,6 +7,7 @@ const getTests = async (req, res) => {
 
     if (category) query.category = category;
     if (isActive !== undefined) query.isActive = isActive === 'true';
+    if (req.query.popular !== undefined) query.isPopular = req.query.popular === 'true';
     if (search) {
       query.name = { $regex: search, $options: 'i' };
     }
@@ -44,14 +44,7 @@ const getTestById = async (req, res) => {
 
 const createTest = async (req, res) => {
   try {
-    const testData = { ...req.body };
-
-    if (req.file) {
-      testData.image = req.file.path;
-      testData.imagePublicId = req.file.filename;
-    }
-
-    const test = await Test.create(testData);
+    const test = await Test.create(req.body);
     res.status(201).json(test);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -60,27 +53,15 @@ const createTest = async (req, res) => {
 
 const updateTest = async (req, res) => {
   try {
-    const test = await Test.findById(req.params.id);
-
-    if (!test) {
-      return res.status(404).json({ message: 'Test not found' });
-    }
-
-    const testData = { ...req.body };
-
-    if (req.file) {
-      if (test.imagePublicId) {
-        await cloudinary.uploader.destroy(test.imagePublicId);
-      }
-      testData.image = req.file.path;
-      testData.imagePublicId = req.file.filename;
-    }
-
     const updatedTest = await Test.findByIdAndUpdate(
       req.params.id,
-      { $set: testData },
+      req.body,
       { new: true, runValidators: true }
     );
+
+    if (!updatedTest) {
+      return res.status(404).json({ message: 'Test not found' });
+    }
 
     res.json(updatedTest);
   } catch (error) {
@@ -96,12 +77,9 @@ const deleteTest = async (req, res) => {
       return res.status(404).json({ message: 'Test not found' });
     }
 
-    if (test.imagePublicId) {
-      await cloudinary.uploader.destroy(test.imagePublicId);
-    }
-
-    await Test.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Test removed' });
+    test.isActive = false;
+    await test.save();
+    res.json({ message: 'Test deactivated successfully', test });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

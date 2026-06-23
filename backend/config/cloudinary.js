@@ -1,6 +1,6 @@
 const cloudinary = require('cloudinary').v2;
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
+const path = require('path');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -8,15 +8,77 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: 'anjali-diagnostic',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
-    transformation: [{ width: 800, height: 800, crop: 'limit' }],
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+  fileFilter: (req, file, cb) => {
+    const mimeType = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.mimetype);
+    const extension = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].includes(
+      path.extname(file.originalname || '').toLowerCase()
+    );
+
+    if (mimeType && extension) {
+      cb(null, true);
+      return;
+    }
+
+    cb(new Error('Only JPG, PNG, WEBP, and GIF image files are allowed'));
   },
 });
 
-const upload = multer({ storage });
+const pdfUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+  fileFilter: (req, file, cb) => {
+    const mimeType = file.mimetype === 'application/pdf';
+    const extension = path.extname(file.originalname || '').toLowerCase() === '.pdf';
 
-module.exports = { cloudinary, upload };
+    if (mimeType && extension) {
+      cb(null, true);
+      return;
+    }
+
+    cb(new Error('Only PDF files are allowed for report uploads'));
+  },
+});
+
+const uploadBufferToCloudinary = ({
+  buffer,
+  folder,
+  resourceType = 'image',
+  type = 'upload',
+  publicId,
+  format,
+  overwrite = false,
+  useFilename = false,
+  uniqueFilename = true,
+}) => new Promise((resolve, reject) => {
+  const options = {
+    folder,
+    resource_type: resourceType,
+    type,
+    overwrite,
+    use_filename: useFilename,
+    unique_filename: uniqueFilename,
+  };
+
+  if (publicId) options.public_id = publicId;
+  if (format) options.format = format;
+
+  const uploadStream = cloudinary.uploader.upload_stream(options, (error, result) => {
+    if (error) {
+      reject(error);
+      return;
+    }
+
+    resolve(result);
+  });
+
+  uploadStream.end(buffer);
+});
+
+module.exports = { cloudinary, upload, pdfUpload, uploadBufferToCloudinary };

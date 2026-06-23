@@ -1,207 +1,172 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
-import { Search, Microscope, Heart, Dna, Stethoscope, ArrowRight, Phone } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import Link from 'next/link'
+import Image from 'next/image'
+import { motion, useInView } from 'framer-motion'
+import { useRef, useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
+import {
+  Search, Shield, HeartPulse, Users, ArrowRight, Sparkles, CheckCircle, Activity,
+} from 'lucide-react'
+import GlobalSearch from './GlobalSearch'
+import { BRAND, CENTRE_IMAGES } from '@/lib/site'
 
-const searchSuggestions = [
-  'Complete Blood Count',
-  'Thyroid Profile',
-  'Lipid Profile',
-  'Blood Sugar Fasting',
-  'Liver Function Test',
-  'Kidney Function Test',
-  'Vitamin D Test',
-  'HbA1c',
+const stats = [
+  { label: 'Happy Patients', value: '50000+', icon: Users },
+  { label: 'Lab Tests', value: '100+', icon: Search },
+  { label: 'Accuracy Rate', value: '99%', icon: Shield },
+  { label: 'Specialities', value: '15+', icon: Activity },
 ]
 
-const floatingIcons = [
-  { Icon: Microscope, delay: 0, x: '10%', y: '20%', size: 32 },
-  { Icon: Heart, delay: 1.5, x: '85%', y: '25%', size: 36 },
-  { Icon: Dna, delay: 0.8, x: '90%', y: '65%', size: 28 },
-  { Icon: Stethoscope, delay: 2, x: '8%', y: '70%', size: 30 },
-]
-
-export default function HeroSection() {
-  const [search, setSearch] = useState('')
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const [filteredSuggestions, setFilteredSuggestions] = useState<string[]>([])
-  const containerRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({ target: containerRef, offset: ['start start', 'end start'] })
-  const y = useTransform(scrollYProgress, [0, 1], [0, 150])
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
+function AnimatedCounter({ value }: { value: string }) {
+  const [count, setCount] = useState(0)
+  const [started, setStarted] = useState(false)
+  const ref = useRef<HTMLSpanElement>(null)
+  const inView = useInView(ref, { once: true, margin: '-50px' })
+  const numValue = parseInt(value.replace(/[^0-9]/g, ''))
 
   useEffect(() => {
-    if (search.length > 0) {
-      setFilteredSuggestions(
-        searchSuggestions.filter((s) => s.toLowerCase().includes(search.toLowerCase()))
-      )
-      setShowSuggestions(true)
-    } else {
-      setShowSuggestions(false)
-    }
-  }, [search])
+    if (!inView || started) return
+    setStarted(true)
+    let current = 0
+    const step = Math.max(1, Math.ceil(numValue / 60))
+    const interval = setInterval(() => {
+      current += step
+      if (current >= numValue) {
+        setCount(numValue)
+        clearInterval(interval)
+      } else {
+        setCount(current)
+      }
+    }, 30)
+    return () => clearInterval(interval)
+  }, [inView, started, numValue])
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15, delayChildren: 0.3 },
-    },
-  }
+  return <span ref={ref}>{count}{value.includes('%') ? '%' : value.includes('+') ? '+' : ''}</span>
+}
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] } },
-  }
-
-  const iconFloatVariants = {
-    initial: { opacity: 0, scale: 0 },
-    animate: (delay: number) => ({
-      opacity: [0, 1, 1, 1, 0],
-      scale: [0, 1, 1, 1, 0],
-      y: [0, -15, 0, -15, 0],
-      transition: {
-        delay,
-        duration: 6,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      },
-    }),
-  }
-
+export default function HeroSection() {
   return (
-    <section
-      ref={containerRef}
-      className="relative min-h-screen flex items-center justify-center overflow-hidden hero-gradient"
-    >
-      <motion.div style={{ y, opacity }} className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(43,143,255,0.3)_0%,_transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom,_rgba(15,39,86,0.5)_0%,_transparent_60%)]" />
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-brand-300/10 rounded-full blur-3xl" />
-      </motion.div>
+    <section className="relative overflow-hidden bg-gradient-to-br from-white via-[#F8FBFC] to-[#EEF8F5]">
+      <div className="pointer-events-none absolute right-0 top-0 h-[520px] w-[520px] translate-x-1/3 -translate-y-1/3 rounded-full bg-[#1BAE9A]/10 blur-[120px]" />
+      <div className="pointer-events-none absolute bottom-0 left-0 h-[420px] w-[420px] -translate-x-1/3 translate-y-1/3 rounded-full bg-[#4CAF50]/10 blur-[120px]" />
 
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {floatingIcons.map(({ Icon, delay, x, y, size }) => (
+      <div className="mx-auto max-w-7xl px-4 pb-10 pt-12 sm:px-6 md:pb-12 md:pt-16 lg:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
           <motion.div
-            key={delay}
-            custom={delay}
-            variants={iconFloatVariants}
-            initial="initial"
-            animate="animate"
-            className="absolute text-white/20"
-            style={{ left: x, top: y }}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: 'easeOut' }}
           >
-            <Icon size={size} />
-          </motion.div>
-        ))}
-      </div>
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#1BAE9A]/10 bg-[#1BAE9A]/5 px-3 py-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-[#1BAE9A]" />
+              <span className="text-xs font-medium text-[#1BAE9A]">Reliable healthcare diagnostics</span>
+            </div>
 
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="relative z-10 max-w-5xl mx-auto px-4 text-center"
-      >
-        <motion.div variants={itemVariants} className="mb-6">
-          <span className="inline-block px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white/90 text-sm font-medium">
-            Welcome to Anjali Diagnostic Centre
-          </span>
-        </motion.div>
+            <h1 className="mb-4 text-3xl font-bold leading-[1.1] text-gray-900 sm:text-4xl lg:text-5xl">
+              {BRAND.fullName}{' '}
+              <span className="bg-gradient-to-r from-[#1BAE9A] to-[#4CAF50] bg-clip-text text-transparent">
+                You Can Trust
+              </span>
+            </h1>
 
-        <motion.h1
-          variants={itemVariants}
-          className="text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-tight mb-6"
-        >
-          Your Health,{' '}
-          <span className="bg-gradient-to-r from-blue-200 via-white to-blue-200 bg-clip-text text-transparent">
-            Our Priority
-          </span>
-        </motion.h1>
+            <p className="mb-3 text-base font-medium text-gray-700 sm:text-lg">
+              Trusted diagnostics for better health.
+            </p>
 
-        <motion.p
-          variants={itemVariants}
-          className="text-xl md:text-2xl text-white/70 max-w-3xl mx-auto mb-10 leading-relaxed"
-        >
-          Accurate diagnostics, compassionate care, and cutting-edge technology —
-          all under one roof.
-        </motion.p>
+            <p className="mb-7 max-w-xl text-sm leading-relaxed text-gray-500 sm:text-base">
+              Accurate laboratory testing, radiology support, and dependable reporting in a clean,
+              patient-friendly diagnostic centre in Hyderabad.
+            </p>
 
-        <motion.div variants={itemVariants} className="relative max-w-2xl mx-auto mb-10">
-          <div className="relative">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-white/50 w-5 h-5" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onFocus={() => search && setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-              placeholder="Search for diagnostic tests..."
-              className="w-full pl-14 pr-6 py-5 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 text-white placeholder:text-white/40 text-lg focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-white/30 transition-all"
-            />
-          </div>
-          {showSuggestions && filteredSuggestions.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="absolute top-full left-0 right-0 mt-2 rounded-xl bg-white/10 backdrop-blur-xl border border-white/20 overflow-hidden"
-            >
-              {filteredSuggestions.map((suggestion) => (
-                <button
-                  key={suggestion}
-                  onMouseDown={() => {
-                    setSearch(suggestion)
-                    setShowSuggestions(false)
-                  }}
-                  className="w-full px-6 py-3 text-left text-white/80 hover:bg-white/10 hover:text-white transition-colors text-sm"
-                >
-                  {suggestion}
-                </button>
+            <div className="mb-8 flex flex-wrap gap-3">
+              <Link href="/tests">
+                <Button size="lg" className="group bg-[#1BAE9A] text-white shadow-lg shadow-[#1BAE9A]/25 hover:bg-[#168E7E] hover:shadow-[#1BAE9A]/40">
+                  Book Laboratory Test
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Button>
+              </Link>
+              <Link href="/find-a-centre">
+                <Button variant="outline" size="lg" className="border-[#1BAE9A] text-[#1BAE9A] hover:bg-[#1BAE9A]/5 hover:border-[#1BAE9A]/30">
+                  Find a Centre
+                </Button>
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap gap-4">
+              {[
+                { icon: CheckCircle, text: 'Trusted local diagnostic centre' },
+                { icon: Shield, text: 'Accurate and dependable reporting' },
+                { icon: HeartPulse, text: 'Clean patient-friendly environment' },
+              ].map((item) => (
+                <div key={item.text} className="flex items-center gap-1.5 text-gray-500">
+                  <item.icon className="h-3.5 w-3.5 text-[#4CAF50]" />
+                  <span className="text-xs sm:text-sm">{item.text}</span>
+                </div>
               ))}
-            </motion.div>
-          )}
-        </motion.div>
+            </div>
+          </motion.div>
 
-        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button
-            size="xl"
-            variant="gradient"
-            className="group relative overflow-hidden"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="relative"
           >
-            <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-            Book Test Now
-            <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Button>
-          <Button
-            size="xl"
-            variant="gradient-outline"
-            className="group text-white border-white/30 hover:bg-white/10"
-          >
-            <Phone className="mr-2 w-5 h-5" />
-            Contact Us
-          </Button>
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white p-3 shadow-[0_30px_80px_rgba(16,185,129,0.16)]">
+              <div className="relative aspect-[5/4] overflow-hidden rounded-[1.5rem]">
+                <Image
+                  src={CENTRE_IMAGES.heroCentre}
+                  alt="Anjali Diagnostics centre reception"
+                  fill
+                  className="object-cover"
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 42vw"
+                />
+              </div>
+            </div>
+
+            <div className="absolute -bottom-6 left-4 w-[42%] max-w-[220px] overflow-hidden rounded-[1.5rem] border border-white/80 bg-white p-2 shadow-2xl sm:left-8">
+              <div className="relative aspect-[4/4] overflow-hidden rounded-[1.1rem]">
+                <Image
+                  src={CENTRE_IMAGES.heroLab}
+                  alt="Anjali Diagnostics laboratory equipment"
+                  fill
+                  className="object-cover"
+                  sizes="220px"
+                />
+              </div>
+              <p className="px-2 pb-1 pt-3 text-xs font-semibold text-gray-700 sm:text-sm">Modern in-house laboratory</p>
+            </div>
+          </motion.div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.45 }}
+          className="mx-auto mt-12 max-w-3xl"
+        >
+          <GlobalSearch />
         </motion.div>
 
-        <motion.div variants={itemVariants} className="mt-16 flex items-center justify-center gap-8 text-white/50 text-sm">
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            ISO Certified
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            NABL Accredited
-          </span>
-          <span className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-            100% Accurate
-          </span>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.6 }}
+          className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4"
+        >
+          {stats.map((stat) => (
+            <div key={stat.label} className="rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm transition-shadow hover:shadow-md">
+              <stat.icon className="mx-auto mb-1.5 h-5 w-5 text-[#1BAE9A]" />
+              <p className="text-xl font-bold text-gray-900 md:text-2xl">
+                <AnimatedCounter value={stat.value} />
+              </p>
+              <p className="mt-0.5 text-xs text-gray-500">{stat.label}</p>
+            </div>
+          ))}
         </motion.div>
-      </motion.div>
-
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+      </div>
     </section>
   )
 }

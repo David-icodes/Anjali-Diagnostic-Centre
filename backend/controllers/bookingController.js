@@ -1,38 +1,121 @@
 const Booking = require('../models/Booking');
 const Test = require('../models/Test');
+const RadiologyService = require('../models/RadiologyService');
+const HealthPackage = require('../models/HealthPackage');
+const Revenue = require('../models/Revenue');
+const ActivityLog = require('../models/ActivityLog');
+const User = require('../models/User');
+const Report = require('../models/Report');
+const mongoose = require('mongoose');
 
-const generateBookingId = () => {
-  const prefix = 'ADC';
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return `${prefix}-${timestamp}${random}`;
+const getDateRangeForDay = (value) => {
+  if (!value) return null;
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  const start = new Date(Date.UTC(parsed.getUTCFullYear(), parsed.getUTCMonth(), parsed.getUTCDate()));
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 1);
+
+  return { $gte: start, $lt: end };
+};
+
+const generateBookingId = async () => {
+  const now = new Date();
+  const datePart = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+  const prefix = `ADC-${datePart}-`;
+  const latestBooking = await Booking.findOne({
+    bookingId: { $regex: `^${prefix}\\d{4}$` },
+  }).sort({ bookingId: -1 }).select('bookingId');
+
+  const latestSequence = latestBooking?.bookingId ? Number(latestBooking.bookingId.split('-').pop()) : 0;
+  const nextSequence = String(latestSequence + 1).padStart(4, '0');
+
+  return `${prefix}${nextSequence}`;
+};
+
+const createBookingWithGeneratedId = async (bookingData) => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      return await Booking.create({
+        ...bookingData,
+        bookingId: await generateBookingId(),
+      });
+    } catch (error) {
+      if (error?.code !== 11000 || !error?.keyPattern?.bookingId) {
+        throw error;
+      }
+    }
+  }
+
+  throw new Error('Unable to generate a unique booking ID. Please try again.');
 };
 
 const createBooking = async (req, res) => {
   try {
-    const test = await Test.findById(req.body.testId);
+    const { serviceType, testId, radiologyId, packageId, dob } = req.body;
+    let serviceName = '';
+    let servicePrice = 0;
 
-    if (!test) {
-      return res.status(404).json({ message: 'Test not found' });
+    if (!dob) {
+      return res.status(400).json({ message: 'Date of birth is required' });
+    }
+
+    const parsedDob = new Date(dob);
+    if (Number.isNaN(parsedDob.getTime())) {
+      return res.status(400).json({ message: 'Invalid date of birth' });
+    }
+
+    if (serviceType === 'Laboratory' && testId) {
+      const test = await Test.findById(testId);
+      if (!test) return res.status(404).json({ message: 'Test not found' });
+      serviceName = test.name;
+      servicePrice = test.offerPrice || test.originalPrice;
+    } else if (serviceType === 'Radiology' && radiologyId) {
+      const rad = await RadiologyService.findById(radiologyId);
+      if (!rad) return res.status(404).json({ message: 'Radiology service not found' });
+      serviceName = rad.name;
+      servicePrice = rad.price;
+    } else if (serviceType === 'Health Package' && packageId) {
+      const pkg = await HealthPackage.findById(packageId);
+      if (!pkg) return res.status(404).json({ message: 'Health package not found' });
+      serviceName = pkg.name;
+      servicePrice = pkg.offerPrice;
+    } else {
+      return res.status(400).json({ message: 'Invalid service selection' });
     }
 
     const bookingData = {
-      bookingId: generateBookingId(),
       patientName: req.body.patientName,
+      dob: parsedDob,
       age: req.body.age,
       gender: req.body.gender,
       mobileNumber: req.body.mobileNumber,
       email: req.body.email,
       address: req.body.address,
-      test: test._id,
-      testName: test.name,
-      testPrice: test.offerPrice || test.originalPrice,
+      serviceType: serviceType || 'Laboratory',
+      serviceName,
+      servicePrice,
+      homeCollection: req.body.homeCollection !== undefined ? req.body.homeCollection : true,
+      test: testId || undefined,
+      testName: serviceType === 'Laboratory' ? serviceName : '',
+      testPrice: serviceType === 'Laboratory' ? servicePrice : 0,
       preferredDate: req.body.preferredDate,
       preferredTime: req.body.preferredTime,
       additionalNotes: req.body.additionalNotes || '',
     };
 
-    const booking = await Booking.create(bookingData);
+    const booking = await createBookingWithGeneratedId(bookingData);
+
+    await ActivityLog.create({
+      user: req.user?._id,
+      username: req.user?.name || 'Guest',
+      action: 'Booking Created',
+      bookingId: booking.bookingId,
+      details: `Booking ${booking.bookingId} created for ${booking.patientName}`,
+      ipAddress: req.ip,
+    });
 
     res.status(201).json({
       success: true,
@@ -46,10 +129,13 @@ const createBooking = async (req, res) => {
 
 const getBookings = async (req, res) => {
   try {
-    const { status, search, page = 1, limit = 10 } = req.query;
+    const { status, search, serviceType, dob, page = 1, limit = 10 } = req.query;
     const query = {};
 
-    if (status) query.status = status;
+    if (status && status.trim()) query.status = status;
+    if (serviceType) query.serviceType = serviceType;
+    const dobRange = getDateRangeForDay(dob);
+    if (dobRange) query.dob = dobRange;
     if (search) {
       query.$or = [
         { bookingId: { $regex: search, $options: 'i' } },
@@ -60,7 +146,6 @@ const getBookings = async (req, res) => {
 
     const total = await Booking.countDocuments(query);
     const bookings = await Booking.find(query)
-      .populate('test', 'name category')
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(parseInt(limit));
@@ -78,11 +163,12 @@ const getBookings = async (req, res) => {
 
 const getBookingById = async (req, res) => {
   try {
-    const booking = await Booking.findById(req.params.id).populate(
-      'test',
-      'name category image'
-    );
-
+    const booking = await Booking.findOne({
+      $or: [
+        { _id: mongoose.isValidObjectId(req.params.id) ? req.params.id : null },
+        { bookingId: req.params.id },
+      ],
+    });
     if (booking) {
       res.json(booking);
     } else {
@@ -95,17 +181,17 @@ const getBookingById = async (req, res) => {
 
 const trackBooking = async (req, res) => {
   try {
-    const { bookingId, mobileNumber } = req.body;
+    const { patientName, mobileNumber } = req.method === 'GET' ? req.query : req.body;
 
     const booking = await Booking.findOne({
-      bookingId,
+      patientName: { $regex: patientName, $options: 'i' },
       mobileNumber,
-    }).populate('test', 'name category image originalPrice offerPrice');
+    }).sort({ createdAt: -1 });
 
     if (booking) {
       res.json(booking);
     } else {
-      res.status(404).json({ message: 'Booking not found. Please check your Booking ID and Mobile Number.' });
+      res.status(404).json({ message: 'No bookings found. Please check your Name and Mobile Number.' });
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -122,27 +208,78 @@ const updateBookingStatus = async (req, res) => {
     }
 
     const validStatuses = [
-      'Pending',
-      'Confirmed',
-      'Sample Collection Scheduled',
-      'Sample Collected',
-      'Processing',
-      'Report Ready',
-      'Completed',
-      'Cancelled',
+      'Pending', 'Assigned', 'Sample Collection Scheduled',
+      'Sample Collected', 'Processing', 'Report Uploaded',
+      'Completed', 'Cancelled',
     ];
 
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: 'Invalid status' });
     }
 
+    const previousStatus = booking.status;
     booking.status = status;
+
+    if (status === 'Sample Collected' && previousStatus !== 'Sample Collected') {
+      booking.sampleCollectedAt = new Date();
+    }
+
     booking.statusHistory.push({
       status,
       updatedBy: req.user ? req.user.name : 'System',
     });
 
     const updatedBooking = await booking.save();
+
+    if (status === 'Completed' && previousStatus !== 'Completed') {
+      const existingRevenue = await Revenue.findOne({ booking: booking._id });
+      if (!existingRevenue) {
+        await Revenue.create({
+          booking: booking._id,
+          amount: booking.servicePrice,
+          date: new Date(),
+          description: `Booking ${booking.bookingId} - ${booking.serviceName}`,
+          isActive: true,
+          deactivatedAt: null,
+        });
+      } else if (!existingRevenue.isActive) {
+        existingRevenue.isActive = true;
+        existingRevenue.deactivatedAt = null;
+        existingRevenue.amount = booking.servicePrice;
+        existingRevenue.description = `Booking ${booking.bookingId} - ${booking.serviceName}`;
+        existingRevenue.date = new Date();
+        await existingRevenue.save();
+      }
+    }
+
+    if (status === 'Cancelled' && previousStatus === 'Completed') {
+      await Revenue.updateOne(
+        { booking: booking._id, isActive: true },
+        {
+          $set: {
+            isActive: false,
+            deactivatedAt: new Date(),
+          },
+        }
+      );
+    }
+
+    const activityAction =
+      status === 'Sample Collected' && previousStatus !== 'Sample Collected'
+        ? 'Sample Collected'
+        : status === 'Completed' && previousStatus !== 'Completed'
+          ? 'Booking Completed'
+          : 'Booking Updated';
+
+    await ActivityLog.create({
+      user: req.user?._id,
+      username: req.user?.name || 'System',
+      action: activityAction,
+      bookingId: booking.bookingId,
+      details: `Booking ${booking.bookingId} status changed from ${previousStatus} to ${status}`,
+      ipAddress: req.ip,
+    });
+
     res.json(updatedBooking);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -157,8 +294,23 @@ const deleteBooking = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    await Booking.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Booking removed' });
+    const bookingObjectId = booking._id;
+    const bookingId = booking.bookingId;
+
+    await Revenue.deleteMany({ booking: bookingObjectId });
+    await Report.deleteMany({ booking: bookingObjectId });
+    await Booking.deleteOne({ _id: bookingObjectId });
+
+    await ActivityLog.create({
+      user: req.user?._id,
+      username: req.user?.name || 'System',
+      action: 'Booking Deleted',
+      bookingId,
+      details: `Permanently deleted booking ${bookingId}`,
+      ipAddress: req.ip,
+    });
+
+    res.json({ message: 'Booking deleted successfully', bookingId });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -168,20 +320,54 @@ const getBookingStats = async (req, res) => {
   try {
     const total = await Booking.countDocuments();
     const pending = await Booking.countDocuments({ status: 'Pending' });
+    const assigned = await Booking.countDocuments({ status: 'Assigned' });
+    const sampleCollected = await Booking.countDocuments({ status: 'Sample Collected' });
+    const processing = await Booking.countDocuments({ status: 'Processing' });
+    const reportUploaded = await Booking.countDocuments({ status: 'Report Uploaded' });
     const completed = await Booking.countDocuments({ status: 'Completed' });
     const cancelled = await Booking.countDocuments({ status: 'Cancelled' });
-    const processing = await Booking.countDocuments({ status: 'Processing' });
-    const reportReady = await Booking.countDocuments({ status: 'Report Ready' });
+
+    const labBookings = await Booking.countDocuments({ serviceType: 'Laboratory' });
+    const radiologyBookings = await Booking.countDocuments({ serviceType: 'Radiology' });
+    const healthPackageBookings = await Booking.countDocuments({ serviceType: 'Health Package' });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sampleCollectionsToday = await Booking.countDocuments({
+      status: 'Sample Collection Scheduled',
+      preferredDate: { $gte: today },
+    });
+
+    const revenueResult = await Revenue.aggregate([
+      { $match: { isActive: true } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
+
+    const dailyRevenueResult = await Revenue.aggregate([
+      { $match: { isActive: true, date: { $gte: today } } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const dailyRevenue = dailyRevenueResult.length > 0 ? dailyRevenueResult[0].total : 0;
+
+    const monthlyRevenue = await Revenue.aggregate([
+      { $match: { isActive: true } },
+      {
+        $group: {
+          _id: { year: { $year: '$date' }, month: { $month: '$date' } },
+          total: { $sum: '$amount' },
+        },
+      },
+      { $sort: { '_id.year': -1, '_id.month': -1 } },
+      { $limit: 12 },
+    ]);
 
     const monthlyBookings = await Booking.aggregate([
       {
         $group: {
-          _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' },
-          },
+          _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
           count: { $sum: 1 },
-          revenue: { $sum: '$testPrice' },
+          revenue: { $sum: '$servicePrice' },
         },
       },
       { $sort: { '_id.year': -1, '_id.month': -1 } },
@@ -189,32 +375,39 @@ const getBookingStats = async (req, res) => {
     ]);
 
     const popularTests = await Booking.aggregate([
-      {
-        $group: {
-          _id: '$testName',
-          count: { $sum: 1 },
-        },
-      },
+      { $group: { _id: '$serviceName', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 },
     ]);
 
     const statusDistribution = await Booking.aggregate([
-      {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 },
-        },
-      },
+      { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
 
+    const totalUsers = await User.countDocuments();
+    const recentReports = await Report.find({ status: 'Uploaded' })
+      .populate('booking', 'bookingId')
+      .sort({ createdAt: -1 })
+      .limit(5);
+
     res.json({
+      totalUsers,
+      recentReports,
       total,
       pending,
+      assigned,
+      sampleCollected,
+      processing,
+      reportUploaded,
       completed,
       cancelled,
-      processing,
-      reportReady,
+      labBookings,
+      radiologyBookings,
+      healthPackageBookings,
+      sampleCollectionsToday,
+      totalRevenue,
+      dailyRevenue,
+      monthlyRevenue,
       monthlyBookings,
       popularTests,
       statusDistribution,

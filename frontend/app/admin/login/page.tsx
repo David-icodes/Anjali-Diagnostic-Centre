@@ -1,16 +1,18 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowRight, Stethoscope, Activity, Heart } from 'lucide-react'
+import { Loader2, Eye, EyeOff, ArrowRight, Stethoscope, Activity, Heart } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { loginSchema, type LoginFormData } from '@/lib/validations'
 import api from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { BRAND } from '@/lib/site'
 
 const floatingShapes = [
   { Icon: Stethoscope, size: 48, color: 'text-brand-400/20', x: '10%', y: '15%', delay: 0 },
@@ -42,9 +44,9 @@ export default function AdminLoginPage() {
     setIsLoading(true)
     try {
       const res = await api.post('/auth/login', data)
-      const { token, user } = res.data
-      localStorage.setItem('token', token)
-      localStorage.setItem('user', JSON.stringify(user))
+      const d = res.data
+      localStorage.setItem('token', d.token)
+      localStorage.setItem('user', JSON.stringify(d))
       toast.success('Welcome back!')
       router.push('/admin/dashboard')
     } catch (error: any) {
@@ -96,11 +98,11 @@ export default function AdminLoginPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex flex-col items-center mb-8"
           >
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/30 mb-4">
-              <Stethoscope className="w-8 h-8 text-white" />
+            <div className="relative mb-4 h-20 w-20 overflow-hidden rounded-3xl border border-white/10 bg-white shadow-lg shadow-brand-500/30">
+              <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-2" sizes="80px" />
             </div>
             <h1 className="text-2xl font-bold text-white">Admin Login</h1>
-            <p className="text-brand-200/60 text-sm mt-1">Anjali Diagnostic Centre</p>
+            <p className="text-brand-200/60 text-sm mt-1">{BRAND.fullName}</p>
           </motion.div>
 
           <AnimatePresence mode="popLayout">
@@ -113,11 +115,11 @@ export default function AdminLoginPage() {
             >
               <div>
                 <Input
-                  type="email"
-                  label="Email Address"
-                  placeholder="Enter your email"
-                  error={errors.email?.message}
-                  {...register('email')}
+                  type="text"
+                  label="Username or Email"
+                  placeholder="Enter username or email"
+                  error={errors.username?.message}
+                  {...register('username')}
                   className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-brand-400 focus:ring-brand-400"
                 />
               </div>

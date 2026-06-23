@@ -1,5 +1,24 @@
 const Offer = require('../models/Offer');
-const { cloudinary } = require('../config/cloudinary');
+const { uploadBufferToCloudinary } = require('../config/cloudinary');
+
+const uploadOfferImage = async (file, offerIdHint) => {
+  if (!file?.buffer) return null;
+
+  const result = await uploadBufferToCloudinary({
+    buffer: file.buffer,
+    folder: 'anjali-diagnostic/offers',
+    resourceType: 'image',
+    publicId: offerIdHint ? `offer-${offerIdHint}-${Date.now()}` : undefined,
+    overwrite: false,
+    useFilename: false,
+    uniqueFilename: true,
+  });
+
+  return {
+    image: result?.secure_url || '',
+    imagePublicId: result?.public_id || '',
+  };
+};
 
 const getOffers = async (req, res) => {
   try {
@@ -36,8 +55,9 @@ const createOffer = async (req, res) => {
     const offerData = { ...req.body };
 
     if (req.file) {
-      offerData.image = req.file.path;
-      offerData.imagePublicId = req.file.filename;
+      const uploadResult = await uploadOfferImage(req.file, req.body?.title || 'new');
+      offerData.image = uploadResult?.image || '';
+      offerData.imagePublicId = uploadResult?.imagePublicId || '';
     }
 
     const offer = await Offer.create(offerData);
@@ -58,11 +78,9 @@ const updateOffer = async (req, res) => {
     const offerData = { ...req.body };
 
     if (req.file) {
-      if (offer.imagePublicId) {
-        await cloudinary.uploader.destroy(offer.imagePublicId);
-      }
-      offerData.image = req.file.path;
-      offerData.imagePublicId = req.file.filename;
+      const uploadResult = await uploadOfferImage(req.file, offer._id.toString());
+      offerData.image = uploadResult?.image || '';
+      offerData.imagePublicId = uploadResult?.imagePublicId || '';
     }
 
     const updatedOffer = await Offer.findByIdAndUpdate(
@@ -85,12 +103,9 @@ const deleteOffer = async (req, res) => {
       return res.status(404).json({ message: 'Offer not found' });
     }
 
-    if (offer.imagePublicId) {
-      await cloudinary.uploader.destroy(offer.imagePublicId);
-    }
-
-    await Offer.findByIdAndDelete(req.params.id);
-    res.json({ message: 'Offer removed' });
+    offer.isActive = false;
+    await offer.save();
+    res.json({ message: 'Offer deactivated successfully' });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -6,15 +6,17 @@ const {
   updateProfile,
   createStaff,
   getUsers,
+  updateUser,
   deleteUser,
 } = require('../controllers/authController');
-const { protect, admin } = require('../middleware/auth');
+const { protect, adminOnly, superAdmin } = require('../middleware/auth');
 
 router.post('/login', loginAdmin);
 router.get('/profile', protect, getProfile);
 router.put('/profile', protect, updateProfile);
-router.post('/staff', protect, admin, createStaff);
-router.get('/users', protect, admin, getUsers);
-router.delete('/users/:id', protect, admin, deleteUser);
+router.post('/staff', protect, adminOnly, createStaff);
+router.get('/users', protect, adminOnly, getUsers);
+router.put('/users/:id', protect, adminOnly, updateUser);
+router.delete('/users/:id', protect, adminOnly, deleteUser);
 
 module.exports = router;

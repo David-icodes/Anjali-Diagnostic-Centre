@@ -6,11 +6,15 @@ const bookingSchema = mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      index: true,
     },
     patientName: {
       type: String,
       required: true,
       trim: true,
+    },
+    dob: {
+      type: Date,
     },
     age: {
       type: Number,
@@ -33,18 +37,34 @@ const bookingSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    serviceType: {
+      type: String,
+      enum: ['Laboratory', 'Radiology', 'Health Package'],
+      default: 'Laboratory',
+    },
+    serviceName: {
+      type: String,
+      default: '',
+    },
+    servicePrice: {
+      type: Number,
+      default: 0,
+    },
+    homeCollection: {
+      type: Boolean,
+      default: true,
+    },
     test: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Test',
-      required: true,
     },
     testName: {
       type: String,
-      required: true,
+      default: '',
     },
     testPrice: {
       type: Number,
-      required: true,
+      default: 0,
     },
     preferredDate: {
       type: Date,
@@ -54,6 +74,23 @@ const bookingSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    sampleCollectedAt: {
+      type: Date,
+      default: null,
+    },
+    isArchived: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    archivedAt: {
+      type: Date,
+      default: null,
+    },
+    archivedBy: {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+      username: { type: String, default: '' },
+    },
     additionalNotes: {
       type: String,
       default: '',
@@ -62,11 +99,11 @@ const bookingSchema = mongoose.Schema(
       type: String,
       enum: [
         'Pending',
-        'Confirmed',
+        'Assigned',
         'Sample Collection Scheduled',
         'Sample Collected',
         'Processing',
-        'Report Ready',
+        'Report Uploaded',
         'Completed',
         'Cancelled',
       ],
@@ -86,14 +123,5 @@ const bookingSchema = mongoose.Schema(
   { timestamps: true }
 );
 
-bookingSchema.pre('save', function (next) {
-  if (this.isModified('status')) {
-    this.statusHistory.push({
-      status: this.status,
-      updatedBy: 'System',
-    });
-  }
-  next();
-});
 
 module.exports = mongoose.model('Booking', bookingSchema);

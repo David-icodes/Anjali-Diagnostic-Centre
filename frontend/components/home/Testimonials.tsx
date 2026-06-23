@@ -1,205 +1,173 @@
-"use client"
+'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { motion, useInView, AnimatePresence } from 'framer-motion'
-import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Star, Quote, ChevronLeft, ChevronRight, User } from 'lucide-react'
 import api from '@/lib/api'
 
 interface Testimonial {
   _id: string
   name: string
-  role?: string
   content: string
-  rating: number
-  avatar?: string
-}
-
-const fallbackTestimonials: Testimonial[] = [
-  {
-    _id: '1',
-    name: 'Priya Sharma',
-    role: 'Regular Patient',
-    content:
-      'Excellent service! The home collection made it so convenient. Reports were delivered within 24 hours. Highly recommended!',
-    rating: 5,
-  },
-  {
-    _id: '2',
-    name: 'Rajesh Kumar',
-    role: 'Business Owner',
-    content:
-      'I have been using Anjali Diagnostic Centre for over 5 years. Their accuracy and professionalism is unmatched.',
-    rating: 5,
-  },
-  {
-    _id: '3',
-    name: 'Sneha Patel',
-    role: 'Teacher',
-    content:
-      'The staff is very caring and professional. They explained everything clearly. Great experience overall.',
-    rating: 4,
-  },
-  {
-    _id: '4',
-    name: 'Amit Verma',
-    role: 'Software Engineer',
-    content:
-      'Online booking was seamless. The reports were available on the app within hours. Truly digital-first approach!',
-    rating: 5,
-  },
-]
-
-function StarRating({ rating }: { rating: number }) {
-  return (
-    <div className="flex gap-1">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={cn(
-            'w-4 h-4',
-            i < rating ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/20'
-          )}
-        />
-      ))}
-    </div>
-  )
+  rating?: number
+  location?: string
 }
 
 export default function Testimonials() {
-  const [testimonials, setTestimonials] = useState<Testimonial[]>(fallbackTestimonials)
-  const [loading, setLoading] = useState(true)
+  const [testimonials, setTestimonials] = useState<Testimonial[]>([])
   const [current, setCurrent] = useState(0)
-  const sectionRef = useRef<HTMLDivElement>(null)
-  const isInView = useInView(sectionRef, { once: true })
+  const [direction, setDirection] = useState(0)
+  const fetched = useRef(false)
   const intervalRef = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
-    const fetchTestimonials = async () => {
-      try {
-        const { data } = await api.get('/testimonials/active')
-        const fetched = data?.testimonials || data?.data
-        if (fetched?.length) setTestimonials(fetched)
-      } catch {
-        // use fallback
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchTestimonials()
+    if (fetched.current) return
+    fetched.current = true
+    api.get('/testimonials?isActive=true')
+      .then((res) => {
+        const data = res.data?.testimonials || res.data || []
+        if (Array.isArray(data)) setTestimonials(data.slice(0, 8))
+      })
+      .catch(() => {})
   }, [])
 
-  const startAutoSlide = useCallback(() => {
-    intervalRef.current = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % testimonials.length)
-    }, 5000)
-  }, [testimonials.length])
+  const defaultTestimonials: Testimonial[] = [
+    { _id: '1', name: 'Priya Sharma', content: 'Excellent diagnostic centre with very professional staff. Got my reports within 24 hours. Highly recommended!', rating: 5, location: 'Kukatpally' },
+    { _id: '2', name: 'Ramesh Kumar', content: 'Very impressed with the home sample collection service. The phlebotomist was gentle and professional. Reports were accurate.', rating: 5, location: 'HITEC City' },
+    { _id: '3', name: 'Sneha Patel', content: 'The health checkup package was comprehensive and very reasonably priced. Clean facility and friendly staff.', rating: 5, location: 'Madhapur' },
+    { _id: '4', name: 'Dr. Venkatesh', content: 'I refer my patients to Anjali Diagnostics regularly. Their accuracy and turnaround time are consistently excellent.', rating: 5, location: 'Hyderabad' },
+  ]
+
+  const items = testimonials.length > 0 ? testimonials : defaultTestimonials
 
   useEffect(() => {
-    startAutoSlide()
-    return () => clearInterval(intervalRef.current)
-  }, [startAutoSlide])
+    intervalRef.current = setInterval(() => {
+      setDirection(1)
+      setCurrent(prev => (prev + 1) % items.length)
+    }, 5000)
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+  }, [items.length])
 
   const goTo = (index: number) => {
+    setDirection(index > current ? 1 : -1)
     setCurrent(index)
-    clearInterval(intervalRef.current)
-    startAutoSlide()
+    if (intervalRef.current) clearInterval(intervalRef.current)
   }
 
-  const next = () => goTo((current + 1) % testimonials.length)
-  const prev = () => goTo((current - 1 + testimonials.length) % testimonials.length)
+  const goNext = () => {
+    setDirection(1)
+    setCurrent(prev => (prev + 1) % items.length)
+  }
 
-  if (loading) {
-    return (
-      <section className="py-24 px-4 bg-gradient-to-b from-background to-brand-50/50">
-        <div className="max-w-4xl mx-auto">
-          <Skeleton className="h-64 rounded-2xl" />
-        </div>
-      </section>
-    )
+  const goPrev = () => {
+    setDirection(-1)
+    setCurrent(prev => (prev - 1 + items.length) % items.length)
+  }
+
+  const variants = {
+    enter: (dir: number) => ({ x: dir > 0 ? 300 : -300, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir > 0 ? -300 : 300, opacity: 0 }),
   }
 
   return (
-    <section className="py-24 px-4 bg-gradient-to-b from-background to-brand-50/50" id="testimonials">
-      <div ref={sectionRef} className="max-w-6xl mx-auto">
+    <section className="relative py-20 md:py-28 bg-gradient-to-b from-[#F8FAFC] to-white overflow-hidden">
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#0D47A1]/5 rounded-full blur-[120px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center max-w-3xl mx-auto mb-14"
         >
-          <span className="inline-block px-4 py-2 rounded-full bg-brand-100 text-brand-700 text-sm font-medium mb-4">
-            Testimonials
-          </span>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            What Our{' '}
-            <span className="text-gradient">Patients Say</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00B8A9]/5 border border-[#00B8A9]/10 mb-4">
+            <Quote className="w-4 h-4 text-[#00B8A9]" />
+            <span className="text-sm font-medium text-[#00B8A9]">Testimonials</span>
+          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-4">
+            What Our Patients Say
           </h2>
+          <p className="text-lg text-gray-600">
+            Trusted by thousands of patients across Hyderabad for accurate diagnostics and compassionate care.
+          </p>
         </motion.div>
 
-        <div className="relative max-w-3xl mx-auto">
-          <div className="overflow-hidden rounded-2xl">
-            <AnimatePresence mode="wait">
+        <div className="max-w-3xl mx-auto">
+          <div className="relative overflow-hidden min-h-[280px]">
+            <AnimatePresence mode="wait" custom={direction}>
               <motion.div
                 key={current}
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -30 }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
-                className="bg-card border rounded-2xl p-8 md:p-12 text-center"
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.4, ease: 'easeInOut' }}
+                className="bg-white rounded-3xl border border-gray-100 p-8 md:p-10 shadow-xl shadow-gray-200/50"
               >
-                <Quote className="w-10 h-10 text-brand-200 mx-auto mb-6" />
-                <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-8 italic">
-                  &ldquo;{testimonials[current].content}&rdquo;
-                </p>
-                <div className="flex items-center justify-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white font-bold text-lg">
-                    {testimonials[current].name.charAt(0)}
-                  </div>
-                  <div className="text-left">
-                    <h4 className="font-semibold">{testimonials[current].name}</h4>
-                    {testimonials[current].role && (
-                      <p className="text-sm text-muted-foreground">{testimonials[current].role}</p>
-                    )}
-                  </div>
+                <div className="flex items-center gap-1 mb-6">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-5 h-5 ${i < (items[current]?.rating || 5) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200'}`}
+                    />
+                  ))}
                 </div>
-                <div className="mt-4 flex justify-center">
-                  <StarRating rating={testimonials[current].rating} />
+
+                <Quote className="w-10 h-10 text-[#00B8A9]/20 mb-4" />
+
+                <p className="text-gray-600 text-lg leading-relaxed mb-8 italic">
+                  &ldquo;{items[current]?.content}&rdquo;
+                </p>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0D47A1] to-[#00B8A9] flex items-center justify-center">
+                      <User className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{items[current]?.name || 'Patient'}</p>
+                      <p className="text-sm text-gray-400">{items[current]?.location || 'Hyderabad'}</p>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </AnimatePresence>
           </div>
 
-          {testimonials.length > 1 && (
-            <div className="flex items-center justify-center gap-4 mt-8">
-              <button
-                onClick={prev}
-                className="p-2 rounded-full border hover:bg-brand-50 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-              <div className="flex gap-2">
-                {testimonials.map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => goTo(i)}
-                    className={cn(
-                      'w-2.5 h-2.5 rounded-full transition-all duration-300',
-                      i === current ? 'bg-brand-500 w-8' : 'bg-brand-200 hover:bg-brand-300'
-                    )}
-                  />
-                ))}
-              </div>
-              <button
-                onClick={next}
-                className="p-2 rounded-full border hover:bg-brand-50 transition-colors"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
+          <div className="flex items-center justify-center gap-4 mt-8">
+            <button
+              onClick={goPrev}
+              className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:border-[#0D47A1]/30 hover:text-[#0D47A1] hover:shadow-md transition-all"
+              aria-label="Previous testimonial"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2">
+              {items.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === current
+                      ? 'w-8 bg-gradient-to-r from-[#0D47A1] to-[#00B8A9]'
+                      : 'w-2 bg-gray-300 hover:bg-gray-400'
+                  }`}
+                  aria-label={`Go to testimonial ${i + 1}`}
+                />
+              ))}
             </div>
-          )}
+
+            <button
+              onClick={goNext}
+              className="w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:border-[#0D47A1]/30 hover:text-[#0D47A1] hover:shadow-md transition-all"
+              aria-label="Next testimonial"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
     </section>
