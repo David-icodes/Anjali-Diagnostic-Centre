@@ -130,7 +130,7 @@ const createBooking = async (req, res) => {
 const getBookings = async (req, res) => {
   try {
     const { status, search, serviceType, dob, page = 1, limit = 10 } = req.query;
-    const query = {};
+    const query = { isArchived: { $ne: true } };
 
     if (status && status.trim()) query.status = status;
     if (serviceType) query.serviceType = serviceType;
@@ -184,6 +184,7 @@ const trackBooking = async (req, res) => {
     const { patientName, mobileNumber } = req.method === 'GET' ? req.query : req.body;
 
     const booking = await Booking.findOne({
+      isArchived: { $ne: true },
       patientName: { $regex: patientName, $options: 'i' },
       mobileNumber,
     }).sort({ createdAt: -1 });
@@ -318,44 +319,46 @@ const deleteBooking = async (req, res) => {
 
 const getBookingStats = async (req, res) => {
   try {
-    const total = await Booking.countDocuments();
-    const pending = await Booking.countDocuments({ status: 'Pending' });
-    const assigned = await Booking.countDocuments({ status: 'Assigned' });
-    const sampleCollected = await Booking.countDocuments({ status: 'Sample Collected' });
-    const processing = await Booking.countDocuments({ status: 'Processing' });
-    const reportUploaded = await Booking.countDocuments({ status: 'Report Uploaded' });
-    const completed = await Booking.countDocuments({ status: 'Completed' });
-    const cancelled = await Booking.countDocuments({ status: 'Cancelled' });
+    const activeBookingQuery = { isArchived: { $ne: true } };
+    const total = await Booking.countDocuments(activeBookingQuery);
+    const pending = await Booking.countDocuments({ ...activeBookingQuery, status: 'Pending' });
+    const assigned = await Booking.countDocuments({ ...activeBookingQuery, status: 'Assigned' });
+    const sampleCollected = await Booking.countDocuments({ ...activeBookingQuery, status: 'Sample Collected' });
+    const processing = await Booking.countDocuments({ ...activeBookingQuery, status: 'Processing' });
+    const reportUploaded = await Booking.countDocuments({ ...activeBookingQuery, status: 'Report Uploaded' });
+    const completed = await Booking.countDocuments({ ...activeBookingQuery, status: 'Completed' });
+    const cancelled = await Booking.countDocuments({ ...activeBookingQuery, status: 'Cancelled' });
 
-    const labBookings = await Booking.countDocuments({ serviceType: 'Laboratory' });
-    const radiologyBookings = await Booking.countDocuments({ serviceType: 'Radiology' });
-    const healthPackageBookings = await Booking.countDocuments({ serviceType: 'Health Package' });
+    const labBookings = await Booking.countDocuments({ ...activeBookingQuery, serviceType: 'Laboratory' });
+    const radiologyBookings = await Booking.countDocuments({ ...activeBookingQuery, serviceType: 'Radiology' });
+    const healthPackageBookings = await Booking.countDocuments({ ...activeBookingQuery, serviceType: 'Health Package' });
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const sampleCollectionsToday = await Booking.countDocuments({
+      ...activeBookingQuery,
       status: 'Sample Collection Scheduled',
       preferredDate: { $gte: today },
     });
 
-    const revenueResult = await Revenue.aggregate([
-      { $match: { isActive: true } },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
+    const revenueResult = await Booking.aggregate([
+      { $match: { ...activeBookingQuery, status: 'Completed' } },
+      { $group: { _id: null, total: { $sum: '$servicePrice' } } },
     ]);
     const totalRevenue = revenueResult.length > 0 ? revenueResult[0].total : 0;
 
-    const dailyRevenueResult = await Revenue.aggregate([
-      { $match: { isActive: true, date: { $gte: today } } },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
+    const dailyRevenueResult = await Booking.aggregate([
+      { $match: { ...activeBookingQuery, status: 'Completed', updatedAt: { $gte: today } } },
+      { $group: { _id: null, total: { $sum: '$servicePrice' } } },
     ]);
     const dailyRevenue = dailyRevenueResult.length > 0 ? dailyRevenueResult[0].total : 0;
 
-    const monthlyRevenue = await Revenue.aggregate([
-      { $match: { isActive: true } },
+    const monthlyRevenue = await Booking.aggregate([
+      { $match: { ...activeBookingQuery, status: 'Completed' } },
       {
         $group: {
-          _id: { year: { $year: '$date' }, month: { $month: '$date' } },
-          total: { $sum: '$amount' },
+          _id: { year: { $year: '$updatedAt' }, month: { $month: '$updatedAt' } },
+          total: { $sum: '$servicePrice' },
         },
       },
       { $sort: { '_id.year': -1, '_id.month': -1 } },
@@ -363,6 +366,7 @@ const getBookingStats = async (req, res) => {
     ]);
 
     const monthlyBookings = await Booking.aggregate([
+      { $match: activeBookingQuery },
       {
         $group: {
           _id: { year: { $year: '$createdAt' }, month: { $month: '$createdAt' } },
@@ -375,17 +379,19 @@ const getBookingStats = async (req, res) => {
     ]);
 
     const popularTests = await Booking.aggregate([
+      { $match: activeBookingQuery },
       { $group: { _id: '$serviceName', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 10 },
     ]);
 
     const statusDistribution = await Booking.aggregate([
+      { $match: activeBookingQuery },
       { $group: { _id: '$status', count: { $sum: 1 } } },
     ]);
 
     const totalUsers = await User.countDocuments();
-    const recentReports = await Report.find({ status: 'Uploaded' })
+    const recentReports = await Report.find({ status: 'Uploaded', isDeleted: false })
       .populate('booking', 'bookingId')
       .sort({ createdAt: -1 })
       .limit(5);

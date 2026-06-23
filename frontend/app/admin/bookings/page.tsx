@@ -45,7 +45,6 @@ interface Booking {
   preferredDate?: string
   preferredTime?: string
   sampleCollectedAt?: string | null
-  isArchived?: boolean
   status: string
   additionalNotes?: string
   createdAt: string
@@ -63,6 +62,8 @@ export default function BookingsPage() {
   const [viewBooking, setViewBooking] = useState<Booking | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [currentUserRole, setCurrentUserRole] = useState('')
+  const [updatingStatus, setUpdatingStatus] = useState(false)
+  const [deletingBooking, setDeletingBooking] = useState(false)
 
   useEffect(() => {
     try {
@@ -71,7 +72,7 @@ export default function BookingsPage() {
       const parsed = JSON.parse(rawUser)
       setCurrentUserRole(parsed.role || '')
     } catch {}
-  }, [])
+  }, []) 
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -88,6 +89,21 @@ export default function BookingsPage() {
     finally { setLoading(false) }
   }, [page, search, statusFilter, serviceFilter])
 
+  useEffect(() => {
+    const handleRefresh = () => { fetchBookings() }
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === 'admin-data-refresh') fetchBookings()
+    }
+
+    window.addEventListener('admin-data-refresh', handleRefresh)
+    window.addEventListener('storage', handleStorage)
+
+    return () => {
+      window.removeEventListener('admin-data-refresh', handleRefresh)
+      window.removeEventListener('storage', handleStorage)
+    }
+  }, [fetchBookings])
+
   useEffect(() => { fetchBookings() }, [fetchBookings])
 
   const notifyAdminRefresh = useCallback(() => {
@@ -98,6 +114,7 @@ export default function BookingsPage() {
 
   const updateStatus = async (bookingId: string, status: string) => {
     try {
+      setUpdatingStatus(true)
       await api.put(`/bookings/${bookingId}/status`, { status })
       toast.success('Status updated successfully')
       fetchBookings()
@@ -114,12 +131,15 @@ export default function BookingsPage() {
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Failed to update status')
+    } finally {
+      setUpdatingStatus(false)
     }
   }
 
   const deleteBooking = async () => {
     if (!deleteConfirm) return
     try {
+      setDeletingBooking(true)
       await api.delete(`/bookings/${deleteConfirm}`)
       toast.success('Booking deleted permanently')
       setDeleteConfirm(null)
@@ -128,6 +148,8 @@ export default function BookingsPage() {
       notifyAdminRefresh()
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Failed to delete booking')
+    } finally {
+      setDeletingBooking(false)
     }
   }
 
@@ -249,11 +271,12 @@ export default function BookingsPage() {
                 <Label className="text-sm font-semibold text-gray-800">Update Booking Status</Label>
                 <p className="text-sm text-gray-500">Select the next workflow stage for this booking. Changes update dashboard analytics automatically.</p>
                 <Select value={viewBooking.status} onValueChange={(v) => updateStatus(viewBooking._id, v)}>
-                  <SelectTrigger className="h-11 w-full bg-white"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-11 w-full bg-white" disabled={updatingStatus}><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {BOOKING_STATUSES.map((s) => (<SelectItem key={s} value={s} disabled={s === viewBooking.status}>{s}</SelectItem>))}
                   </SelectContent>
                 </Select>
+                {updatingStatus ? <p className="text-xs font-medium text-brand-600">Updating booking status...</p> : null}
               </div>
 
               <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -295,8 +318,8 @@ export default function BookingsPage() {
             <DialogDescription>Are you sure you want to permanently delete this booking? This action cannot be undone.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-            <Button onClick={deleteBooking} className="bg-red-600 text-white hover:bg-red-700">Delete Permanently</Button>
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)} disabled={deletingBooking}>Cancel</Button>
+            <Button onClick={deleteBooking} disabled={deletingBooking} className="bg-red-600 text-white hover:bg-red-700">{deletingBooking ? 'Deleting...' : 'Delete Permanently'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
