@@ -27,10 +27,20 @@ connectDB();
 const app = express();
 app.set('trust proxy', 1);
 
-const allowedOrigins = (process.env.FRONTEND_URL || '')
+const productionOrigins = [
+  'https://anjali-diagnostic-centre.vercel.app',
+  'https://anjalidiagnostic.com',
+  'https://www.anjalidiagnostic.com',
+  'http://localhost:3000',
+  'http://localhost:3001',
+];
+
+const envOrigins = (process.env.FRONTEND_URL || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+const allowedOrigins = [...new Set([...productionOrigins, ...envOrigins])];
 
 const corsOptions = {
   origin(origin, callback) {
@@ -39,14 +49,18 @@ const corsOptions = {
       return;
     }
 
-    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+    if (allowedOrigins.includes(origin)) {
       callback(null, true);
       return;
     }
 
-    callback(new Error(`CORS blocked for origin: ${origin}`));
+    console.warn(`CORS blocked origin: ${origin}`);
+    callback(null, false);
   },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
+  optionsSuccessStatus: 204,
 };
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
