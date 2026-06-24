@@ -72,9 +72,17 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: BRAND.favicon,
-    shortcut: BRAND.favicon,
-    apple: '/branding/logo.png',
+    icon: [
+      { url: '/branding/logo.png', type: 'image/png', sizes: '512x512' },
+      { url: '/favicon.ico', sizes: 'any' },
+    ],
+    shortcut: { url: '/branding/logo.png', type: 'image/png' },
+    apple: [
+      { url: '/branding/logo.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { rel: 'apple-touch-icon-precomposed', url: '/branding/logo.png' },
+    ],
   },
 }
 
