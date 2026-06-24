@@ -34,7 +34,7 @@ interface FooterSettings {
 
 const defaultSettings: FooterSettings = {
   address: 'Plot No. 347 HMT Hills Kukatpally Hyderabad - 500085',
-  phone: '9989220938',
+  phone: '9440626892',
   email: 'anjalidiagnostics1602@gmail.com',
 }
 

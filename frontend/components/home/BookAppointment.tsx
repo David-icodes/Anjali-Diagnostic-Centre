@@ -94,7 +94,7 @@ export default function BookAppointment() {
                   <ArrowRight className="w-5 h-5 ml-2" />
                 </Button>
               </Link>
-              <a href="tel:9989220938">
+              <a href="tel:9440626892">
                 <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10">
                   <Phone className="w-5 h-5 mr-2" />
                   Call 94406 26892

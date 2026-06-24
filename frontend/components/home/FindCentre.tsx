@@ -21,7 +21,7 @@ export default function FindCentre() {
   }, [])
 
   const address = settings.address || 'Plot No. 347 HMT Hills Kukatpally Hyderabad - 500085'
-  const phone = settings.phone || '9989220938'
+  const phone = settings.phone || '9440626892'
   const email = settings.email || 'anjalidiagnostics1602@gmail.com'
 
   return (

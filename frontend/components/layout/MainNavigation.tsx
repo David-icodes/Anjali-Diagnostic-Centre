@@ -84,7 +84,7 @@ export default function MainNavigation() {
                 </div>
                 <div>
                   <p className="text-xs font-medium uppercase tracking-[0.16em] text-gray-400">Call Us</p>
-                  <a href="tel:9989220938" className="text-base font-semibold text-[#0F766E]">9989220938</a>
+                  <a href="tel:9440626892" className="text-base font-semibold text-[#0F766E]">9440626892</a>
                 </div>
               </div>
 
@@ -97,9 +97,9 @@ export default function MainNavigation() {
                   <SearchIcon className="h-4 w-4" />
                   Search
                 </button>
-                <a href="tel:9989220938" className="flex items-center gap-2 rounded-full border border-[#DCEFEB] bg-white px-4 py-2 text-sm font-semibold text-[#0F766E] shadow-sm">
+                <a href="tel:9440626892" className="flex items-center gap-2 rounded-full border border-[#DCEFEB] bg-white px-4 py-2 text-sm font-semibold text-[#0F766E] shadow-sm">
                   <Phone className="h-4 w-4" />
-                  9989220938
+                  9440626892
                 </a>
               </div>
             </div>

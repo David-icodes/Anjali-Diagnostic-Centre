@@ -29,8 +29,8 @@ export default function TopHeader() {
             </div>
             <div className="flex items-center gap-1.5">
               <Phone className="h-3.5 w-3.5 text-[#14846F]" />
-              <a href={`tel:${settings.phone || '9989220938'}`} className="text-gray-700 transition-colors hover:text-[#0F9A88]">
-                {settings.phone || '9989220938'}
+              <a href={`tel:${settings.phone || '9440626892'}`} className="text-gray-700 transition-colors hover:text-[#0F9A88]">
+                {settings.phone || '9440626892'}
               </a>
             </div>
             <div className="flex items-center gap-1.5">
@@ -43,7 +43,7 @@ export default function TopHeader() {
           <div className="flex items-center gap-1.5 rounded-full border border-white/70 bg-white/50 px-3 py-1 shadow-sm backdrop-blur-sm">
             <Clock className="h-3.5 w-3.5 text-[#14846F]" />
             <span className="text-gray-700">
-              {settings.workingHours || 'Mon - Sat: 7:00 AM - 8:00 PM'}
+              {settings.workingHours || 'Mon - Sat: 6:00 AM - 10:00 PM'}
             </span>
           </div>
         </div>
