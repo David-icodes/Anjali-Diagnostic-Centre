@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Plus, Pencil, Trash2, Power, PowerOff, Search, ChevronLeft, ChevronRight,
+  Plus, Pencil, Trash2, Power, PowerOff, Search, ChevronLeft, ChevronRight, Sparkles,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -38,18 +38,19 @@ import StatusBadge from '@/components/admin/StatusBadge'
 const categories = [
   'Blood Test',
   'Urine Test',
-  'Imaging',
   'Cardiac',
-  'Thyroid',
   'Diabetes',
+  'Thyroid',
   'Liver',
   'Kidney',
+  'Hormones',
   'Vitamin',
-  'Hormone',
   'Infection',
-  'Cancer Screening',
-  'Allergy',
-  'Wellness Package',
+  'Cancer',
+  'Full Body Checkup',
+  'Women Health',
+  'Senior Citizen',
+  'Other',
 ]
 
 const containerVariants = {
@@ -71,6 +72,9 @@ interface Test {
   category: string
   originalPrice: number
   offerPrice: number
+  offerLabel?: string
+  offerBadge?: string
+  hasOffer?: boolean
   description: string
   preparationInstructions?: string
   testDuration?: string
@@ -102,6 +106,9 @@ export default function TestsPage() {
     defaultValues: {
       isActive: true,
       isPopular: false,
+      hasOffer: false,
+      offerLabel: '',
+      offerBadge: '',
       description: '',
       preparationInstructions: '',
       testDuration: '',
@@ -110,6 +117,7 @@ export default function TestsPage() {
 
   const watchIsActive = watch('isActive')
   const watchIsPopular = watch('isPopular')
+  const watchHasOffer = watch('hasOffer')
 
   const fetchTests = useCallback(async () => {
     try {
@@ -137,6 +145,9 @@ export default function TestsPage() {
       description: '',
       originalPrice: 0,
       offerPrice: 0,
+      offerLabel: '',
+      offerBadge: '',
+      hasOffer: false,
       preparationInstructions: '',
       testDuration: '',
       isActive: true,
@@ -153,6 +164,9 @@ export default function TestsPage() {
       description: test.description || '',
       originalPrice: test.originalPrice,
       offerPrice: test.offerPrice,
+      offerLabel: test.offerLabel || '',
+      offerBadge: test.offerBadge || '',
+      hasOffer: !!test.hasOffer || test.offerPrice < test.originalPrice,
       preparationInstructions: test.preparationInstructions || '',
       testDuration: test.testDuration || '',
       isActive: test.isActive,
@@ -164,10 +178,26 @@ export default function TestsPage() {
   const onSubmit = async (data: TestFormData) => {
     setSubmitting(true)
     try {
+      const hasOffer = !!data.hasOffer
+      const originalPrice = Number(data.originalPrice)
+      const offerPrice = hasOffer
+        ? Number(data.offerPrice || 0)
+        : originalPrice
+
+      if (hasOffer && (!offerPrice || offerPrice >= originalPrice)) {
+        toast.error('Offer price must be lower than the original price when offer is enabled')
+        setSubmitting(false)
+        return
+      }
+
       const payload = {
         ...data,
         description: data.description || '',
-        offerPrice: data.offerPrice ?? data.originalPrice,
+        originalPrice,
+        offerPrice,
+        hasOffer,
+        offerLabel: hasOffer ? (data.offerLabel || '') : '',
+        offerBadge: hasOffer ? (data.offerBadge || '') : '',
       }
 
       if (editingTest) {
@@ -209,24 +239,46 @@ export default function TestsPage() {
   }
 
   const columns: Column<Test>[] = [
-    { key: 'name', header: 'Name' },
-    { key: 'category', header: 'Category' },
     {
-      key: 'originalPrice',
-      header: 'Price',
-      render: (test) => formatPrice(test.originalPrice),
-    },
-    {
-      key: 'offerPrice',
-      header: 'Offer Price',
+      key: 'name',
+      header: 'Name',
       render: (test) => (
-        <span className="font-medium text-emerald-600">{formatPrice(test.offerPrice)}</span>
+        <div>
+          <p className="font-semibold text-gray-900">{test.name}</p>
+          <p className="text-xs text-gray-500">{test.category}</p>
+        </div>
       ),
     },
     {
-      key: 'isActive',
-      header: 'Status',
-      render: (test) => <StatusBadge status={test.isActive ? 'Active' : 'Inactive'} />,
+      key: 'originalPrice',
+      header: 'Pricing',
+      render: (test) => (
+        <div>
+          <p className={`font-medium ${test.hasOffer ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{formatPrice(test.originalPrice)}</p>
+          {test.hasOffer ? <p className="text-sm font-semibold text-emerald-600">{formatPrice(test.offerPrice)}</p> : null}
+        </div>
+      ),
+    },
+    {
+      key: 'isPopular',
+      header: 'Visibility',
+      render: (test) => (
+        <div className="flex flex-wrap gap-2">
+          <StatusBadge status={test.isActive ? 'Active' : 'Inactive'} />
+          {test.isPopular ? <span className="rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">Popular</span> : null}
+          {test.hasOffer ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">Offer Enabled</span> : null}
+        </div>
+      ),
+    },
+    {
+      key: 'offerLabel',
+      header: 'Offer Details',
+      render: (test) => test.hasOffer ? (
+        <div>
+          <p className="font-medium text-gray-900">{test.offerLabel || 'Special Offer'}</p>
+          <p className="text-xs text-gray-500">{test.offerBadge || 'Homepage offer card enabled'}</p>
+        </div>
+      ) : <span className="text-sm text-gray-400">No offer</span>,
     },
     {
       key: '_id',
@@ -252,7 +304,7 @@ export default function TestsPage() {
       <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Test Management</h1>
-          <p className="mt-1 text-sm text-gray-500">Create tests with only the essential required fields and manage visibility cleanly.</p>
+          <p className="mt-1 text-sm text-gray-500">Required fields stay minimal while Popular and Offer toggles control the homepage automatically.</p>
         </div>
         <Button onClick={openAddModal} className="bg-gradient-to-r from-brand-500 to-brand-400 text-white shadow-lg shadow-brand-500/25 hover:from-brand-600 hover:to-brand-500">
           <Plus className="mr-2 h-4 w-4" />
@@ -271,12 +323,12 @@ export default function TestsPage() {
             className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400"
           />
         </div>
-        <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1) }}>
-          <SelectTrigger className="w-full sm:w-44">
+        <Select value={categoryFilter || 'all'} onValueChange={(v) => { setCategoryFilter(v === 'all' ? '' : v); setPage(1) }}>
+          <SelectTrigger className="w-full sm:w-56">
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             {categories.map((cat) => (
               <SelectItem key={cat} value={cat}>{cat}</SelectItem>
             ))}
@@ -316,11 +368,11 @@ export default function TestsPage() {
       </motion.div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingTest ? 'Edit Test' : 'Add Test'}</DialogTitle>
             <DialogDescription>
-              Required fields: Test Name, Category, and Price. All other fields are optional.
+              Required fields: Test Name, Category, and Price. Offer controls are optional and power the homepage Special Offers section.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -357,9 +409,34 @@ export default function TestsPage() {
                 <Input type="number" {...register('originalPrice')} error={errors.originalPrice?.message} placeholder="0" />
               </div>
               <div>
-                <Label>Offer Price (Optional)</Label>
-                <Input type="number" {...register('offerPrice')} error={errors.offerPrice?.message} placeholder="0" />
+                <Label>Offer Price {watchHasOffer ? '' : '(Optional)'}</Label>
+                <Input type="number" {...register('offerPrice')} error={errors.offerPrice?.message} placeholder="0" disabled={!watchHasOffer} />
               </div>
+            </div>
+
+            <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-gray-900">Enable Offer</p>
+                  <p className="text-sm text-gray-500">Turn this on to display the test in the homepage Special Offers section.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch checked={watchHasOffer} onCheckedChange={(value) => setValue('hasOffer', value)} id="hasOffer" />
+                  <Label htmlFor="hasOffer">Offer Enabled</Label>
+                </div>
+              </div>
+              {watchHasOffer ? (
+                <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label>Offer Label</Label>
+                    <Input {...register('offerLabel')} placeholder="e.g. Health Saver" />
+                  </div>
+                  <div>
+                    <Label>Offer Badge</Label>
+                    <Input {...register('offerBadge')} placeholder="e.g. 20% OFF" />
+                  </div>
+                </div>
+              ) : null}
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -373,7 +450,7 @@ export default function TestsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex flex-wrap items-center gap-6 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
               <div className="flex items-center gap-2">
                 <Switch checked={watchIsActive} onCheckedChange={(value) => setValue('isActive', value)} id="isActive" />
                 <Label htmlFor="isActive">Active</Label>
@@ -381,6 +458,10 @@ export default function TestsPage() {
               <div className="flex items-center gap-2">
                 <Switch checked={watchIsPopular} onCheckedChange={(value) => setValue('isPopular', value)} id="isPopular" />
                 <Label htmlFor="isPopular">Popular</Label>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Sparkles className="h-4 w-4 text-brand-600" />
+                Popular shows in homepage Popular Tests.
               </div>
             </div>
 

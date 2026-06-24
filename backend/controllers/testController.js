@@ -1,5 +1,26 @@
 const Test = require('../models/Test');
 
+const normalizeOfferState = (payload = {}) => {
+  const originalPrice = Number(payload.originalPrice || 0);
+  const requestedOfferPrice = payload.offerPrice !== undefined && payload.offerPrice !== ''
+    ? Number(payload.offerPrice)
+    : originalPrice;
+
+  const inferredOffer = requestedOfferPrice > 0 && requestedOfferPrice < originalPrice;
+  const hasOffer = payload.hasOffer !== undefined
+    ? String(payload.hasOffer) === 'true' || payload.hasOffer === true
+    : inferredOffer;
+
+  return {
+    ...payload,
+    originalPrice,
+    offerPrice: hasOffer ? requestedOfferPrice : originalPrice,
+    hasOffer,
+    offerLabel: hasOffer ? String(payload.offerLabel || '').trim() : '',
+    offerBadge: hasOffer ? String(payload.offerBadge || '').trim() : '',
+  };
+};
+
 const getTests = async (req, res) => {
   try {
     const { category, search, isActive, includeDeleted, page = 1, limit = 12 } = req.query;
@@ -8,6 +29,16 @@ const getTests = async (req, res) => {
     if (category) query.category = category;
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (req.query.popular !== undefined) query.isPopular = req.query.popular === 'true';
+    if (req.query.hasOffer !== undefined) {
+      if (req.query.hasOffer === 'true') {
+        query.$or = [
+          { hasOffer: true },
+          { $expr: { $lt: ['$offerPrice', '$originalPrice'] } },
+        ];
+      } else {
+        query.hasOffer = false;
+      }
+    }
     if (search) {
       query.name = { $regex: search, $options: 'i' };
     }
@@ -16,12 +47,12 @@ const getTests = async (req, res) => {
     const tests = await Test.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit, 10));
 
     res.json({
       tests,
       total,
-      page: parseInt(page),
+      page: parseInt(page, 10),
       pages: Math.ceil(total / limit),
     });
   } catch (error) {
@@ -44,13 +75,11 @@ const getTestById = async (req, res) => {
 
 const createTest = async (req, res) => {
   try {
-    const payload = {
+    const payload = normalizeOfferState({
       ...req.body,
       description: req.body.description || '',
-      offerPrice: req.body.offerPrice !== undefined && req.body.offerPrice !== ''
-        ? req.body.offerPrice
-        : req.body.originalPrice,
-    };
+    });
+
     const test = await Test.create(payload);
     res.status(201).json(test);
   } catch (error) {
@@ -60,13 +89,11 @@ const createTest = async (req, res) => {
 
 const updateTest = async (req, res) => {
   try {
-    const payload = {
+    const payload = normalizeOfferState({
       ...req.body,
       description: req.body.description ?? '',
-    };
-    if (payload.offerPrice === undefined || payload.offerPrice === '') {
-      payload.offerPrice = payload.originalPrice;
-    }
+    });
+
     const updatedTest = await Test.findByIdAndUpdate(
       req.params.id,
       payload,

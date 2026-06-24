@@ -32,6 +32,10 @@ const testSchema = mongoose.Schema(
       type: String,
       default: '',
     },
+    image: {
+      type: String,
+      default: '',
+    },
     originalPrice: {
       type: Number,
       required: true,
@@ -39,6 +43,21 @@ const testSchema = mongoose.Schema(
     offerPrice: {
       type: Number,
       default: 0,
+    },
+    hasOffer: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    offerLabel: {
+      type: String,
+      default: '',
+      trim: true,
+    },
+    offerBadge: {
+      type: String,
+      default: '',
+      trim: true,
     },
     preparationInstructions: {
       type: String,

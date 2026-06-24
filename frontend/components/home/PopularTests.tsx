@@ -46,23 +46,6 @@ export default function PopularTests() {
     fetchTests()
   }, [])
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.12 },
-    },
-  }
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 24 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] },
-    },
-  }
-
   return (
     <section className="bg-white px-4 py-16 sm:px-6 lg:px-8" id="popular-tests">
       <div ref={sectionRef} className="mx-auto max-w-7xl">
@@ -77,7 +60,7 @@ export default function PopularTests() {
           </span>
           <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Most Booked Tests</h2>
           <p className="mx-auto max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
-            Popular diagnostics selected by patients, displayed automatically when the admin enables the Popular toggle.
+            Popular diagnostics selected by patients and highlighted automatically when the Popular toggle is enabled.
           </p>
         </motion.div>
 
@@ -107,28 +90,25 @@ export default function PopularTests() {
             </p>
           </div>
         ) : (
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate={isInView ? 'visible' : 'hidden'}
-            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
-          >
-            {tests.map((test) => {
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {tests.map((test, index) => {
               const displayOfferPrice = test.offerPrice ?? test.originalPrice
               const hasDiscount = displayOfferPrice < test.originalPrice
 
               return (
                 <motion.div
                   key={test._id}
-                  variants={cardVariants}
-                  className="overflow-hidden rounded-[1.75rem] border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.4, delay: index * 0.06 }}
+                  className="group overflow-hidden rounded-[1.75rem] border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10"
                 >
                   <div className="relative h-48 overflow-hidden bg-gradient-to-br from-brand-100 to-brand-50">
                     {test.image ? (
                       <img
                         src={test.image}
                         alt={test.name}
-                        className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     ) : (
                       <div className="flex h-full w-full items-center justify-center">
@@ -142,32 +122,32 @@ export default function PopularTests() {
 
                   <div className="space-y-4 p-5">
                     <div className="space-y-2">
-                      <h3 className="line-clamp-1 text-lg font-semibold text-gray-900">{test.name}</h3>
-                      <p className="line-clamp-2 text-sm leading-relaxed text-gray-600">
+                      <h3 className="line-clamp-2 min-h-[3.5rem] text-lg font-semibold text-gray-900">{test.name}</h3>
+                      <p className="line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-gray-600">
                         {test.description || 'Reliable diagnostic testing with patient-friendly service and timely reporting.'}
                       </p>
                     </div>
 
                     <div className="flex items-end gap-3">
-                      <span className="text-2xl font-bold text-brand-600">{formatPrice(displayOfferPrice)}</span>
                       {hasDiscount ? (
-                        <span className="pb-1 text-sm text-gray-400 line-through">{formatPrice(test.originalPrice)}</span>
+                        <span className="text-sm text-gray-400 line-through">{formatPrice(test.originalPrice)}</span>
                       ) : null}
+                      <span className="text-2xl font-bold text-brand-600">{formatPrice(displayOfferPrice)}</span>
                     </div>
 
                     <Button
                       variant="gradient"
-                      className="w-full"
+                      className="w-full rounded-full"
                       onClick={() => router.push(`/booking?test=${test._id}`)}
                     >
-                      Book Now
+                      Book Test
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
                 </motion.div>
               )
             })}
-          </motion.div>
+          </div>
         )}
       </div>
     </section>

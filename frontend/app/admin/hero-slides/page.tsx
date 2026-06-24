@@ -78,21 +78,30 @@ export default function HeroSlidesPage() {
       formData.append('title', values.title || '')
       formData.append('displayOrder', String(values.displayOrder ?? 0))
       formData.append('isActive', String(values.isActive))
-      if (image) formData.append('image', image)
+      if (image) {
+        formData.append('image', image, image.name)
+      }
+
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
 
       if (editingSlide) {
-        await api.put(`/hero-slides/${editingSlide._id}`, formData)
+        await api.put(`/hero-slides/${editingSlide._id}`, formData, config)
         toast.success('Hero slide updated successfully')
       } else {
         if (!image) {
           toast.error('Please upload a hero image')
           return
         }
-        await api.post('/hero-slides', formData)
+        await api.post('/hero-slides', formData, config)
         toast.success('Hero slide created successfully')
       }
 
       setModalOpen(false)
+      setImage(null)
       fetchSlides()
     } catch (error: any) {
       toast.error(error?.response?.data?.message || 'Failed to save hero slide')
@@ -173,7 +182,13 @@ export default function HeroSlidesPage() {
         <form onSubmit={submit} className="space-y-4">
           <Input label="Title" {...form.register('title')} />
           <Input label="Display Order" type="number" {...form.register('displayOrder', { valueAsNumber: true })} />
-          <ImageUpload value={image} onChange={setImage} existingImage={editingSlide?.image} />
+          <div className="space-y-2">
+            <Label>{editingSlide ? 'Replace image (optional)' : 'Hero image'}</Label>
+            <ImageUpload value={image} onChange={setImage} existingImage={editingSlide?.image} />
+            <p className="text-xs text-gray-500">
+              {image ? `Selected file: ${image.name}` : editingSlide ? 'Keep the current image or upload a replacement.' : 'Upload a JPG, PNG, or WEBP image for the homepage hero slider.'}
+            </p>
+          </div>
           <div className="flex items-center gap-3">
             <Switch checked={form.watch('isActive')} onCheckedChange={(value) => form.setValue('isActive', value)} />
             <Label>Active</Label>
@@ -186,7 +201,7 @@ export default function HeroSlidesPage() {
       </Modal>
 
       <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Hero Slide">
-        <p className="mb-6 text-gray-600">Are you sure you want to delete this hero slide?</p>
+        <p className="mb-6 text-gray-600">Are you sure you want to delete this hero slide? The image will also be removed from Cloudinary.</p>
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
           <Button variant="destructive" onClick={deleteSlide}>Delete</Button>

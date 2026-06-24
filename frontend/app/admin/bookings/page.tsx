@@ -53,8 +53,8 @@ export default function BookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
-  const [serviceFilter, setServiceFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
+  const [serviceFilter, setServiceFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [viewBooking, setViewBooking] = useState<Booking | null>(null)
@@ -77,8 +77,8 @@ export default function BookingsPage() {
       setLoading(true)
       const params: any = { page, limit: 10 }
       if (search) params.search = search
-      if (statusFilter) params.status = statusFilter
-      if (serviceFilter) params.serviceType = serviceFilter
+      if (statusFilter !== 'all') params.status = statusFilter
+      if (serviceFilter !== 'all') params.serviceType = serviceFilter
       const res = await api.get('/bookings', { params })
       setBookings(res.data.bookings || res.data || [])
       setTotalPages(res.data.pages || 1)
@@ -198,18 +198,18 @@ export default function BookingsPage() {
             />
           </div>
           <Select value={serviceFilter} onValueChange={(v) => { setServiceFilter(v); setPage(1) }}>
-            <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="All Types" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="All Types" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="Laboratory">Laboratory</SelectItem>
               <SelectItem value="Radiology">Radiology</SelectItem>
               <SelectItem value="Health Package">Health Package</SelectItem>
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
-            <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-48"><SelectValue placeholder="All Statuses" /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               {BOOKING_STATUSES.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
             </SelectContent>
           </Select>
@@ -232,7 +232,7 @@ export default function BookingsPage() {
       </Card>
 
       <Dialog open={!!viewBooking} onOpenChange={() => setViewBooking(null)}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border border-gray-200 bg-white shadow-2xl">
+        <DialogContent className="max-h-[92vh] max-w-5xl overflow-y-auto border border-gray-200 bg-white shadow-2xl">
           {viewBooking && (
             <>
               <DialogHeader className="border-b border-gray-100 pb-4">
@@ -246,109 +246,109 @@ export default function BookingsPage() {
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="grid gap-4 py-4 lg:grid-cols-2">
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                  <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-gray-500">Patient Information</h3>
-                  <div className="grid gap-3">
-                    <InfoRow icon={User} label="Patient Name" value={viewBooking.patientName || 'N/A'} />
-                    <InfoRow icon={Calendar} label="Date of Birth" value={viewBooking.dob ? formatDate(viewBooking.dob) : 'N/A'} />
-                    <InfoRow icon={Phone} label="Phone Number" value={viewBooking.mobileNumber || 'N/A'} />
-                    <InfoRow icon={Mail} label="Email Address" value={viewBooking.email || 'N/A'} />
+              <div className="space-y-5 py-5">
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-gray-500">Patient Information</h3>
+                    <div className="grid gap-3">
+                      <InfoRow icon={User} label="Patient Name" value={viewBooking.patientName || 'N/A'} />
+                      <InfoRow icon={Calendar} label="Date of Birth" value={viewBooking.dob ? formatDate(viewBooking.dob) : 'N/A'} />
+                      <InfoRow icon={Phone} label="Phone Number" value={viewBooking.mobileNumber || 'N/A'} />
+                      <InfoRow icon={Mail} label="Email Address" value={viewBooking.email || 'N/A'} />
+                    </div>
+                  </div>
+                  <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-gray-500">Booking Information</h3>
+                    <div className="grid gap-3">
+                      <InfoRow icon={Activity} label="Service Type" value={viewBooking.serviceType || 'N/A'} />
+                      <InfoRow icon={Activity} label="Service Name" value={viewBooking.serviceName || 'N/A'} />
+                      <InfoRow icon={Calendar} label="Preferred Date" value={formatDate(viewBooking.preferredDate || viewBooking.createdAt)} />
+                      <InfoRow icon={Clock} label="Preferred Time" value={viewBooking.preferredTime || 'N/A'} />
+                      <InfoRow icon={FileText} label="Sample Collected" value={viewBooking.sampleCollectedAt ? formatDate(viewBooking.sampleCollectedAt) : 'N/A'} />
+                      <InfoRow icon={FileText} label="Created On" value={formatDate(viewBooking.createdAt)} />
+                      <InfoRow icon={CheckCircle2} label="Home Collection" value={viewBooking.homeCollection ? 'Yes' : 'No'} />
+                    </div>
                   </div>
                 </div>
-                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                  <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-gray-500">Booking Information</h3>
-                  <div className="grid gap-3">
-                    <InfoRow icon={Activity} label="Service Type" value={viewBooking.serviceType || 'N/A'} />
-                    <InfoRow icon={Activity} label="Service Name" value={viewBooking.serviceName || 'N/A'} />
-                    <InfoRow icon={Calendar} label="Preferred Date" value={formatDate(viewBooking.preferredDate || viewBooking.createdAt)} />
-                    <InfoRow icon={Clock} label="Preferred Time" value={viewBooking.preferredTime || 'N/A'} />
-                    <InfoRow icon={FileText} label="Sample Collected" value={viewBooking.sampleCollectedAt ? formatDate(viewBooking.sampleCollectedAt) : 'N/A'} />
-                    <InfoRow icon={FileText} label="Created On" value={formatDate(viewBooking.createdAt)} />
-                    <InfoRow icon={CheckCircle2} label="Home Collection" value={viewBooking.homeCollection ? 'Yes' : 'No'} />
-                  </div>
-                </div>
-              </div>
 
-              <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50/90 to-sky-50/80 p-5 shadow-sm">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-800">
-                      <MapPinned className="h-4 w-4" />
-                      Collection Address
-                    </h3>
-                    <p className="mt-3 text-base font-semibold text-gray-900">{viewBooking.patientName || 'N/A'}</p>
-                    <p className="mt-2 text-sm leading-relaxed text-gray-700">{viewBooking.address || 'Address not provided'}</p>
+                <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50/90 to-sky-50/80 p-5 shadow-sm">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-800">
+                        <MapPinned className="h-4 w-4" />
+                        Collection Address
+                      </h3>
+                      <p className="mt-3 text-base font-semibold text-gray-900">{viewBooking.patientName || 'N/A'}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-gray-700">{viewBooking.address || 'Address not provided'}</p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-2 rounded-full border-emerald-200 bg-white/90 text-emerald-700"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(viewBooking.address || '')
+                          toast.success('Address copied')
+                        } catch {
+                          toast.error('Failed to copy address')
+                        }
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy Address
+                    </Button>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="gap-2 rounded-full border-emerald-200 bg-white/90 text-emerald-700"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(viewBooking.address || '')
-                        toast.success('Address copied')
-                      } catch {
-                        toast.error('Failed to copy address')
-                      }
-                    }}
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy Address
-                  </Button>
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <MiniDetail icon={Phone} label="Phone" value={viewBooking.mobileNumber || 'N/A'} />
+                    <MiniDetail icon={Mail} label="Email" value={viewBooking.email || 'N/A'} />
+                    <MiniDetail icon={Building2} label="City" value={extractAddressPart(viewBooking.address, 'city')} />
+                    <MiniDetail icon={MapPin} label="Pincode" value={extractAddressPart(viewBooking.address, 'pincode')} />
+                  </div>
                 </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <MiniDetail icon={Phone} label="Phone" value={viewBooking.mobileNumber || 'N/A'} />
-                  <MiniDetail icon={Mail} label="Email" value={viewBooking.email || 'N/A'} />
-                  <MiniDetail icon={Building2} label="City" value={extractAddressPart(viewBooking.address, 'city')} />
-                  <MiniDetail icon={MapPin} label="Pincode" value={extractAddressPart(viewBooking.address, 'pincode')} />
-                </div>
-              </div>
 
-              {viewBooking.additionalNotes && (
                 <div className="rounded-2xl border border-amber-100 bg-amber-50/60 p-4 text-sm">
                   <span className="font-medium text-amber-900">Additional Notes</span>
-                  <p className="mt-1 text-amber-800">{viewBooking.additionalNotes}</p>
+                  <p className="mt-1 text-amber-800">{viewBooking.additionalNotes || 'No additional notes provided.'}</p>
                 </div>
-              )}
 
-              <div className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50/70 p-5">
-                <Label className="text-sm font-semibold text-gray-800">Update Booking Status</Label>
-                <p className="text-sm text-gray-500">Select the next workflow stage for this booking. Changes update dashboard analytics automatically.</p>
-                <Select value={viewBooking.status} onValueChange={(v) => updateStatus(viewBooking._id, v)}>
-                  <SelectTrigger className="h-11 w-full bg-white" disabled={updatingStatus}><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {BOOKING_STATUSES.map((s) => (<SelectItem key={s} value={s} disabled={s === viewBooking.status}>{s}</SelectItem>))}
-                  </SelectContent>
-                </Select>
-                {updatingStatus ? <p className="text-xs font-medium text-brand-600">Updating booking status...</p> : null}
-              </div>
-
-              <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
-                <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900"><Clock className="h-4 w-4 text-brand-600" /> Status History</h4>
-                <div className="max-h-72 overflow-y-auto pr-1">
-                  <div className="space-y-4">
-                    {(viewBooking.statusHistory?.length ? [...viewBooking.statusHistory] : []).map((entry, i, arr) => {
-                      const isLatest = i === arr.length - 1
-                      return (
-                        <div key={`${entry.status}-${entry.updatedAt}-${i}`} className="relative flex gap-4 pb-4 last:pb-0">
-                          {i < arr.length - 1 && <div className="absolute bottom-0 left-[19px] top-10 w-px bg-gray-200" />}
-                          <div className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${isLatest ? 'border-emerald-200 bg-emerald-100 text-emerald-600' : 'border-gray-200 bg-gray-100 text-gray-500'}`}>
-                            {isLatest ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-4 w-4" />}
-                          </div>
-                          <div className="min-w-0 flex-1 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
-                            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                              <div>
-                                <p className={`text-sm font-semibold ${isLatest ? 'text-emerald-700' : 'text-gray-900'}`}>{entry.status}</p>
-                                <p className="mt-1 text-xs text-gray-500">Updated by {entry.updatedBy || 'System'}</p>
+                <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                  <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold text-gray-900"><Clock className="h-4 w-4 text-brand-600" /> Booking Timeline</h4>
+                  <div className="max-h-72 overflow-y-auto pr-1">
+                    <div className="space-y-4">
+                      {(viewBooking.statusHistory?.length ? [...viewBooking.statusHistory] : [{ status: viewBooking.status, updatedAt: viewBooking.createdAt, updatedBy: 'System' }]).map((entry, i, arr) => {
+                        const isLatest = i === arr.length - 1
+                        return (
+                          <div key={`${entry.status}-${entry.updatedAt}-${i}`} className="relative flex gap-4 pb-4 last:pb-0">
+                            {i < arr.length - 1 && <div className="absolute bottom-0 left-[19px] top-10 w-px bg-gray-200" />}
+                            <div className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${isLatest ? 'border-emerald-200 bg-emerald-100 text-emerald-600' : 'border-gray-200 bg-gray-100 text-gray-500'}`}>
+                              {isLatest ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-4 w-4" />}
+                            </div>
+                            <div className="min-w-0 flex-1 rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
+                              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                  <p className={`text-sm font-semibold ${isLatest ? 'text-emerald-700' : 'text-gray-900'}`}>{entry.status}</p>
+                                  <p className="mt-1 text-xs text-gray-500">Updated by {entry.updatedBy || 'System'}</p>
+                                </div>
+                                <p className="text-xs font-medium text-gray-400">{new Date(entry.updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
                               </div>
-                              <p className="text-xs font-medium text-gray-400">{new Date(entry.updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
                             </div>
                           </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
                   </div>
+                </div>
+
+                <div className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50/70 p-5">
+                  <Label className="text-sm font-semibold text-gray-800">Update Booking Status</Label>
+                  <p className="text-sm text-gray-500">Select the next workflow stage for this booking. Changes update dashboard analytics automatically.</p>
+                  <Select value={viewBooking.status} onValueChange={(v) => updateStatus(viewBooking._id, v)}>
+                    <SelectTrigger className="h-11 w-full bg-white" disabled={updatingStatus}><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {BOOKING_STATUSES.map((s) => (<SelectItem key={s} value={s} disabled={s === viewBooking.status}>{s}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                  {updatingStatus ? <p className="text-xs font-medium text-brand-600">Updating booking status...</p> : null}
                 </div>
               </div>
             </>

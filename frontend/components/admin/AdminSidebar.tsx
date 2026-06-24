@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  LayoutDashboard, CalendarCheck, Settings, Users, ChevronLeft, ChevronRight, LogOut, Radio, Package, FileText, Activity, Syringe, Images, BadgePercent,
+  LayoutDashboard, CalendarCheck, Settings, Users, ChevronLeft, ChevronRight, LogOut, Radio, Package, FileText, Activity, Syringe, Images,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -31,7 +31,6 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/admin/users', label: 'Users', icon: Users },
       { href: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },
-      { href: '/admin/offers', label: 'Offers', icon: BadgePercent },
     ],
   },
   {
@@ -91,27 +90,27 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
-        <div className="flex items-center gap-3 px-4 h-14 border-b border-gray-100 shrink-0 bg-gradient-to-r from-brand-600 to-brand-500">
-          <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-white/20 bg-white shrink-0">
+        <div className="flex h-14 shrink-0 items-center gap-3 border-b border-gray-100 bg-gradient-to-r from-brand-600 to-brand-500 px-4">
+          <div className="relative h-9 w-9 shrink-0 overflow-hidden rounded-xl border border-white/20 bg-white">
             <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-1" sizes="36px" />
           </div>
           <AnimatePresence>
             {!collapsed && (
               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="overflow-hidden whitespace-nowrap">
-                <p className="text-sm font-bold text-white leading-tight">{BRAND.name}</p>
-                <p className="text-[9px] text-white/70 font-medium leading-tight">Administration Panel</p>
+                <p className="text-sm font-bold leading-tight text-white">{BRAND.name}</p>
+                <p className="text-[9px] font-medium leading-tight text-white/70">Administration Panel</p>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        <nav className="flex-1 py-3 px-2 overflow-y-auto overflow-x-hidden scrollbar-thin">
+        <nav className="scrollbar-thin flex-1 overflow-x-hidden overflow-y-auto px-2 py-3">
           {navGroups.map((group) => (
             <div key={group.label} className="mb-4 last:mb-0">
               <AnimatePresence>
                 {!collapsed && (
                   <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="px-3 mb-1 text-[10px] font-semibold tracking-widest text-gray-400 uppercase"
+                    className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400"
                   >
                     {group.label}
                   </motion.p>
@@ -124,13 +123,13 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
                     <Link key={item.href} href={item.href}>
                       <div
                         className={cn(
-                          'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150',
+                          'flex items-center gap-3 rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-150',
                           active
-                            ? 'text-brand-700 bg-brand-50 border border-brand-100'
-                            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50 border border-transparent'
+                            ? 'border-brand-100 bg-brand-50 text-brand-700'
+                            : 'border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                         )}
                       >
-                        <item.icon className={cn('w-4.5 h-4.5 shrink-0', active ? 'text-brand-600' : 'text-gray-400')} />
+                        <item.icon className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-brand-600' : 'text-gray-400')} />
                         <AnimatePresence>
                           {!collapsed && (
                             <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -147,33 +146,33 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
           ))}
         </nav>
 
-        <div className="border-t border-gray-100 shrink-0">
+        <div className="shrink-0 border-t border-gray-100">
           <button
             onClick={() => onCollapse?.(!collapsed)}
-            className="hidden lg:flex items-center justify-center w-full h-8 text-gray-400 hover:text-brand-600 hover:bg-brand-50 transition-all"
+            className="hidden h-8 w-full items-center justify-center text-gray-400 transition-all hover:bg-brand-50 hover:text-brand-600 lg:flex"
           >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
           <div className={cn('flex items-center gap-3 p-3', collapsed && 'justify-center')}>
-            <Avatar className="w-8 h-8 shrink-0 ring-2 ring-brand-100">
+            <Avatar className="h-8 w-8 shrink-0 ring-2 ring-brand-100">
               <AvatarImage src={user?.avatar} />
-              <AvatarFallback className="bg-brand-50 text-brand-700 text-xs font-semibold">
+              <AvatarFallback className="bg-brand-50 text-xs font-semibold text-brand-700">
                 {user?.name?.charAt(0) || 'A'}
               </AvatarFallback>
             </Avatar>
             <AnimatePresence>
               {!collapsed && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate leading-tight">{user?.name || 'Admin'}</p>
-                  <p className="text-[10px] text-gray-400 truncate">{user?.role || 'Administrator'}</p>
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium leading-tight text-gray-900">{user?.name || 'Admin'}</p>
+                  <p className="truncate text-[10px] text-gray-400">{user?.role || 'Administrator'}</p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout}
-            className={cn('w-full rounded-none h-9 text-gray-400 hover:text-red-600 hover:bg-red-50 text-xs', collapsed && 'px-0')}
+            className={cn('h-9 w-full rounded-none text-xs text-gray-400 hover:bg-red-50 hover:text-red-600', collapsed && 'px-0')}
           >
-            <LogOut className="w-3.5 h-3.5 shrink-0" />
+            <LogOut className="h-3.5 w-3.5 shrink-0" />
             <AnimatePresence>{!collapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="ml-2">Sign Out</motion.span>}</AnimatePresence>
           </Button>
         </div>

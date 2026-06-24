@@ -2,34 +2,40 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { Tag, Clock } from 'lucide-react'
-import { formatDate } from '@/lib/utils'
+import { useRouter } from 'next/navigation'
+import { ArrowRight, BadgePercent, Search, Sparkles } from 'lucide-react'
+import { formatPrice } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import api from '@/lib/api'
 
-interface Offer {
+interface OfferTest {
   _id: string
-  title: string
-  description: string
-  discountPercentage: number
-  couponCode?: string
-  validUntil: string
+  name: string
+  category: string
+  description?: string
+  originalPrice: number
+  offerPrice: number
+  offerLabel?: string
+  offerBadge?: string
   image?: string
 }
 
 export default function OffersSection() {
-  const [offers, setOffers] = useState<Offer[]>([])
+  const [offers, setOffers] = useState<OfferTest[]>([])
   const [loading, setLoading] = useState(true)
   const sectionRef = useRef<HTMLDivElement>(null)
-  const isInView = useInView(sectionRef, { once: true })
+  const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
+  const router = useRouter()
 
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const { data } = await api.get('/offers', { params: { isActive: true, showOnHomePage: true } })
-        setOffers(Array.isArray(data) ? data : data?.offers || data?.data || [])
+        const { data } = await api.get('/tests', {
+          params: { hasOffer: true, isActive: true, limit: 6 },
+        })
+        setOffers(data?.tests || [])
       } catch {
         setOffers([])
       } finally {
@@ -45,78 +51,93 @@ export default function OffersSection() {
   }
 
   return (
-    <section className="relative overflow-hidden px-4 py-20" id="offers">
-      <div className="absolute inset-0 bg-gradient-to-b from-brand-50/30 to-background pointer-events-none" />
-
-      <div ref={sectionRef} className="relative z-10 mx-auto max-w-7xl">
+    <section className="relative overflow-hidden bg-[linear-gradient(180deg,#F8FBFC_0%,#FFFFFF_100%)] px-4 py-20 sm:px-6 lg:px-8" id="offers">
+      <div ref={sectionRef} className="mx-auto max-w-7xl">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="mb-16 text-center"
+          transition={{ duration: 0.5 }}
+          className="mb-10 flex flex-col gap-3 text-center sm:mb-12"
         >
-          <span className="mb-4 inline-block rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700">
+          <span className="mx-auto inline-flex rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700">
             Special Offers
           </span>
-          <h2 className="mb-4 text-4xl font-bold md:text-5xl">
-            Exclusive <span className="text-gradient">Discounts</span>
-          </h2>
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Save on health checkups with active Anjali Diagnostics offers shown directly from the admin panel.
+          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Diagnostic Savings You Can Book Today</h2>
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
+            Tests with enabled offers automatically appear here with discounted pricing and savings details.
           </p>
         </motion.div>
 
         {loading ? (
-          <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {[1, 2, 3].map((item) => <Skeleton key={item} className="h-80 rounded-3xl" />)}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3].map((item) => <Skeleton key={item} className="h-96 rounded-[2rem]" />)}
           </div>
         ) : (
-          <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {offers.map((offer, index) => (
-              <motion.div
-                key={offer._id}
-                initial={{ opacity: 0, y: 24 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.45, delay: index * 0.06 }}
-                className="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-[0_22px_48px_rgba(15,118,110,0.09)]"
-              >
-                <div className="relative h-52 overflow-hidden bg-gradient-to-br from-brand-50 to-emerald-50">
-                  {offer.image ? (
-                    <img src={offer.image} alt={offer.title} className="h-full w-full object-cover" />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-brand-300">
-                      <Tag className="h-14 w-14" />
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {offers.map((offer, index) => {
+              const savings = Math.max(offer.originalPrice - offer.offerPrice, 0)
+              const badgeText = offer.offerBadge || offer.offerLabel || `${Math.round((savings / offer.originalPrice) * 100)}% OFF`
+
+              return (
+                <motion.div
+                  key={offer._id}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={isInView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.45, delay: index * 0.06 }}
+                  className="group overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_22px_48px_rgba(15,118,110,0.09)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_28px_60px_rgba(15,118,110,0.12)]"
+                >
+                  <div className="relative h-56 overflow-hidden bg-gradient-to-br from-brand-100 to-emerald-50">
+                    {offer.image ? (
+                      <img src={offer.image} alt={offer.name} className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-brand-300">
+                        <Search className="h-16 w-16" />
+                      </div>
+                    )}
+                    <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+                      <Badge variant="warning" className="px-3 py-1 text-xs font-semibold">{badgeText}</Badge>
+                      <Badge variant="info">{offer.category}</Badge>
                     </div>
-                  )}
-                  <div className="absolute left-4 top-4">
-                    <Badge variant="warning" className="px-3 py-1 text-sm">
-                      {offer.discountPercentage}% OFF
-                    </Badge>
                   </div>
-                </div>
-                <div className="space-y-4 p-6">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900">{offer.title}</h3>
-                    <p className="mt-2 text-sm leading-relaxed text-gray-600">{offer.description}</p>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-500">
-                    <Clock className="h-4 w-4 text-brand-500" />
-                    Valid till {formatDate(offer.validUntil)}
-                  </div>
-                  {offer.couponCode ? (
-                    <div className="rounded-2xl border border-brand-100 bg-brand-50/70 px-4 py-3 text-sm text-brand-700">
-                      Coupon Code: <span className="font-semibold tracking-wide">{offer.couponCode}</span>
+
+                  <div className="space-y-4 p-6">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-amber-600">
+                        <Sparkles className="h-4 w-4" />
+                        <span className="text-xs font-semibold uppercase tracking-[0.18em]">{offer.offerLabel || 'Limited offer'}</span>
+                      </div>
+                      <h3 className="line-clamp-2 min-h-[3.5rem] text-xl font-semibold text-gray-900">{offer.name}</h3>
+                      <p className="line-clamp-2 min-h-[2.75rem] text-sm leading-relaxed text-gray-600">
+                        {offer.description || 'Save more on essential diagnostics with accurate testing and patient-friendly support.'}
+                      </p>
                     </div>
-                  ) : null}
-                  <Button className="w-full rounded-full bg-gradient-to-r from-brand-600 to-emerald-500 text-white shadow-sm hover:from-brand-700 hover:to-emerald-600">
-                    Claim Offer
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
+
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 p-4">
+                      <div className="flex items-end gap-3">
+                        <span className="text-sm text-gray-400 line-through">{formatPrice(offer.originalPrice)}</span>
+                        <span className="text-3xl font-bold text-emerald-700">{formatPrice(offer.offerPrice)}</span>
+                      </div>
+                      <div className="mt-2 flex items-center gap-2 text-sm font-medium text-emerald-700">
+                        <BadgePercent className="h-4 w-4" />
+                        Save {formatPrice(savings)}
+                      </div>
+                    </div>
+
+                    <Button
+                      className="w-full rounded-full bg-gradient-to-r from-brand-600 to-emerald-500 text-white shadow-sm hover:from-brand-700 hover:to-emerald-600"
+                      onClick={() => router.push(`/booking?test=${offer._id}`)}
+                    >
+                      Book Now
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )
+            })}
           </div>
         )}
       </div>
     </section>
   )
 }
+
