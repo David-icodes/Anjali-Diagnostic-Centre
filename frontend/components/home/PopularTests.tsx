@@ -17,7 +17,6 @@ interface Test {
   description?: string
   originalPrice: number
   offerPrice?: number
-  image?: string
   isPopular: boolean
 }
 
@@ -52,7 +51,7 @@ export default function PopularTests() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.25 }}
+          transition={{ duration: 0.2 }}
           className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between"
         >
           <div>
@@ -61,7 +60,7 @@ export default function PopularTests() {
               Most Popular
             </div>
             <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">Popular Tests</h2>
-            <p className="mt-2 text-base text-gray-600">Frequently booked diagnostic services</p>
+            <p className="mt-2 text-base text-gray-600">Most Booked Tests</p>
           </div>
 
           <button
@@ -78,7 +77,7 @@ export default function PopularTests() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                <Skeleton className="h-[280px] rounded-none" />
+                <Skeleton className="h-[290px] rounded-none" />
               </div>
             ))}
           </div>
@@ -107,49 +106,41 @@ export default function PopularTests() {
                   transition={{ duration: 0.2, delay: index * 0.04 }}
                   className="group flex h-[280px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-150 hover:-translate-y-[3px] hover:shadow-lg"
                 >
-                  <div className="p-3 pb-0">
-                    <Badge variant="info" className="rounded-full px-2.5 py-1 text-xs">{test.category}</Badge>
-                  </div>
+                  <div className="flex h-full flex-col p-5">
+                    <div className="mb-3">
+                      <Badge variant="info" className="rounded-full px-2.5 py-1 text-xs">
+                        {test.category}
+                      </Badge>
+                    </div>
 
-                  <div className="relative h-[130px] overflow-hidden bg-gradient-to-br from-[#F0FDFA] to-[#F8FAFC] px-4 py-2">
-                    <div className="flex h-full items-center justify-center">
-                      {test.image ? (
-                        <img
-                          src={test.image}
-                          alt={test.name}
-                          className="h-full max-h-[90px] w-full object-contain"
-                        />
-                      ) : (
-                        <Search className="h-10 w-10 text-[#0F766E] opacity-70" />
+                    <h3 className="mb-1 line-clamp-2 text-lg font-semibold text-gray-900">
+                      {test.name}
+                    </h3>
+
+                    <p className="mb-3 line-clamp-2 text-sm leading-5 text-gray-500">
+                      {test.description || 'Reliable diagnostic testing with patient-friendly service and timely reporting.'}
+                    </p>
+
+                    <div className="flex-1" />
+
+                    <div className="mb-3 flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-[#0F766E]">
+                        {formatPrice(displayOfferPrice)}
+                      </span>
+                      {hasDiscount && (
+                        <span className="text-sm text-gray-400 line-through">
+                          {formatPrice(test.originalPrice)}
+                        </span>
                       )}
                     </div>
-                  </div>
 
-                  <div className="flex flex-1 flex-col justify-between p-4 pt-3">
-                    <div className="space-y-2">
-                      <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">{test.name}</h3>
-                      <p className="line-clamp-2 text-sm leading-5 text-gray-600">
-                        {test.description || 'Reliable diagnostic testing with patient-friendly service and timely reporting.'}
-                      </p>
-                    </div>
-
-                    <div className="space-y-3 pt-3">
-                      <div className="flex items-end gap-2">
-                        {hasDiscount ? (
-                          <span className="text-xs text-gray-400 line-through">{formatPrice(test.originalPrice)}</span>
-                        ) : null}
-                        <span className="text-2xl font-bold text-[#0F766E]">{formatPrice(displayOfferPrice)}</span>
-                      </div>
-
-                      <Button
-                        variant="gradient"
-                        className="h-10 w-full rounded-full bg-[#14B8A6] text-white shadow-sm transition-all duration-150 hover:bg-[#0F766E]"
-                        onClick={() => router.push(`/booking?test=${test._id}`)}
-                      >
-                        Book Test
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </div>
+                    <Button
+                      className="h-10 w-full rounded-full bg-[#14B8A6] text-white shadow-sm transition-all duration-150 hover:bg-[#0F766E]"
+                      onClick={() => router.push(`/booking?test=${test._id}`)}
+                    >
+                      Book Test
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
                   </div>
                 </motion.div>
               )

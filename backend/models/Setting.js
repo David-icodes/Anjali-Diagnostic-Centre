@@ -16,7 +16,7 @@ const settingSchema = mongoose.Schema(
     },
     workingHours: {
       type: String,
-      default: 'Mon - Sat: 7:00 AM - 9:00 PM',
+      default: 'Mon - Sat: 6:00 AM - 10:00 PM',
     },
     facebook: {
       type: String,

@@ -1,7 +1,6 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import TopHeader from './TopHeader'
 import MainNavigation from './MainNavigation'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -12,7 +11,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 
   return (
     <>
-      <TopHeader />
       <MainNavigation />
       {children}
     </>
