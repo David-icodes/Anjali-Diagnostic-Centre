@@ -7,15 +7,110 @@ import { BRAND } from '@/lib/site'
 
 const inter = Inter({ subsets: ['latin'] })
 
+const baseUrl = 'https://www.anjalidiagnostic.com'
+
 export const metadata: Metadata = {
-  title: 'Anjali Diagnostic Centre | Advanced Diagnostic Care You Can Trust',
-  description: 'State-of-the-art diagnostic centre in Hyderabad offering 100+ lab tests, radiology services, health checkup packages with 99% accuracy and free home sample collection.',
-  keywords: 'diagnostic centre, medical tests, health checkup, pathology lab, blood test, full body checkup, radiology, MRI, CT scan, Hyderabad',
+  title: {
+    default: 'Anjali Diagnostic Centre | Diagnostic Lab & Health Checkups in Kukatpally, Hyderabad',
+    template: '%s | Anjali Diagnostic Centre',
+  },
+  description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad. Trusted diagnostics for better health.',
+  keywords: [
+    'Anjali Diagnostic Centre',
+    'Diagnostic Centre Hyderabad',
+    'Diagnostic Centre Kukatpally',
+    'Blood Tests Hyderabad',
+    'Medical Laboratory Hyderabad',
+    'Health Checkup Centre',
+    'Radiology Services Hyderabad',
+    'Diagnostic Lab Telangana',
+    'Health Packages Hyderabad',
+    'Diagnostic Services Hyderabad',
+    'Laboratory Services Hyderabad',
+  ],
+  authors: [{ name: 'Anjali Diagnostic Centre' }],
+  creator: 'Anjali Diagnostic Centre',
+  publisher: 'Anjali Diagnostic Centre',
+  formatDetection: {
+    telephone: true,
+    email: false,
+    address: true,
+  },
+  metadataBase: new URL(baseUrl),
+  alternates: {
+    canonical: baseUrl,
+  },
+  openGraph: {
+    title: 'Anjali Diagnostic Centre | Diagnostic Lab & Health Checkups in Kukatpally, Hyderabad',
+    description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad.',
+    url: baseUrl,
+    siteName: 'Anjali Diagnostic Centre',
+    locale: 'en_IN',
+    type: 'website',
+    images: [
+      {
+        url: '/branding/logo.png',
+        width: 512,
+        height: 512,
+        alt: 'Anjali Diagnostic Centre',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Anjali Diagnostic Centre | Diagnostic Lab & Health Checkups in Kukatpally, Hyderabad',
+    description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad.',
+    images: ['/branding/logo.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+    },
+  },
   icons: {
     icon: BRAND.favicon,
     shortcut: BRAND.favicon,
-    apple: BRAND.logo,
+    apple: '/branding/logo.png',
   },
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'MedicalBusiness',
+  name: 'Anjali Diagnostic Centre',
+  url: baseUrl,
+  logo: `${baseUrl}/branding/logo.png`,
+  telephone: '+919440626892',
+  email: 'anjalidiagnostics1602@gmail.com',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Plot No. 347, HMT Hills, Kukatpally',
+    addressLocality: 'Hyderabad',
+    addressRegion: 'Telangana',
+    postalCode: '500085',
+    addressCountry: 'IN',
+  },
+  description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad.',
+  medicalSpecialty: 'Diagnostic',
+  areaServed: { '@type': 'City', name: 'Hyderabad' },
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+      opens: '07:00',
+      closes: '20:00',
+    },
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: 'Sunday',
+      opens: '07:00',
+      closes: '14:00',
+    },
+  ],
 }
 
 export default function RootLayout({
@@ -26,6 +121,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body className={inter.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <PublicLayout>
           {children}
         </PublicLayout>
