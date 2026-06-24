@@ -84,9 +84,9 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
       <motion.aside
         initial={false}
         animate={{ width: collapsed ? 72 : 256 }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
         className={cn(
-          'fixed left-0 top-0 z-40 flex h-screen flex-col overflow-hidden border-r border-gray-200 bg-white transition-transform duration-300',
+          'fixed left-0 top-0 z-40 flex h-screen flex-col overflow-hidden border-r border-gray-200 bg-white transition-transform duration-200',
           isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
@@ -180,3 +180,4 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
     </>
   )
 }
+

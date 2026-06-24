@@ -45,25 +45,25 @@ export default function Modal({
         {open && (
           <DialogContent
             className={cn(
-              'p-0 gap-0 overflow-hidden',
+              'gap-0 overflow-hidden p-0',
               sizeClasses[size],
               className
             )}
           >
             <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.96 }}
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.96 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
               transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-              <DialogHeader className="px-6 pt-6 pb-4 border-b border-gray-100">
+              <DialogHeader className="border-b border-gray-100 px-6 pb-4 pt-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <DialogTitle className="text-lg font-semibold text-gray-900">
                       {title}
                     </DialogTitle>
                     {description && (
-                      <DialogDescription className="text-sm text-gray-500 mt-1">
+                      <DialogDescription className="mt-1 text-sm text-gray-500">
                         {description}
                       </DialogDescription>
                     )}
@@ -72,13 +72,13 @@ export default function Modal({
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 shrink-0"
+                    className="shrink-0 text-gray-400 hover:text-gray-600"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </DialogHeader>
-              <div className="px-6 py-4 max-h-[70vh] overflow-y-auto">
+              <div className="max-h-[70vh] overflow-y-auto px-6 py-4">
                 {children}
               </div>
             </motion.div>

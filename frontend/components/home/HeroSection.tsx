@@ -30,7 +30,7 @@ function AnimatedCounter({ value }: { value: string }) {
     if (!inView || started) return
     setStarted(true)
     let current = 0
-    const step = Math.max(1, Math.ceil(numValue / 60))
+    const step = Math.max(1, Math.ceil(numValue / 40))
     const interval = setInterval(() => {
       current += step
       if (current >= numValue) {
@@ -39,7 +39,7 @@ function AnimatedCounter({ value }: { value: string }) {
       } else {
         setCount(current)
       }
-    }, 30)
+    }, 20)
     return () => clearInterval(interval)
   }, [inView, started, numValue])
 
@@ -93,9 +93,9 @@ export default function HeroSection() {
       <div className="mx-auto max-w-7xl px-4 pb-10 pt-12 sm:px-6 md:pb-12 md:pt-16 lg:px-8">
         <div className="grid items-center gap-10 lg:grid-cols-[1.02fr_0.98fr] lg:gap-12">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
           >
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#1BAE9A]/10 bg-[#1BAE9A]/5 px-3 py-1.5">
               <Sparkles className="h-3.5 w-3.5 text-[#1BAE9A]" />
@@ -122,7 +122,7 @@ export default function HeroSection() {
               <Link href="/tests">
                 <Button size="lg" className="group bg-[#1BAE9A] text-white shadow-lg shadow-[#1BAE9A]/25 hover:bg-[#168E7E] hover:shadow-[#1BAE9A]/40">
                   Book Laboratory Test
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-150 group-hover:translate-x-1" />
                 </Button>
               </Link>
               <Link href="/find-a-centre">
@@ -147,16 +147,16 @@ export default function HeroSection() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
+            initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.2, delay: 0.05 }}
             className="relative"
           >
             <div className="relative h-[320px] overflow-hidden rounded-[2rem] bg-slate-100 shadow-[0_30px_80px_rgba(16,185,129,0.16)] sm:h-[420px] lg:h-[540px]">
               {slides.map((slide, index) => (
                 <div
                   key={slide._id}
-                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                  className={`absolute inset-0 transition-opacity duration-300 ease-in-out ${
                     index === activeSlide ? 'opacity-100' : 'opacity-0'
                   }`}
                 >
@@ -176,7 +176,7 @@ export default function HeroSection() {
                   <button
                     type="button"
                     onClick={() => setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length)}
-                    className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition hover:bg-white"
+                    className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition duration-150 hover:bg-white"
                     aria-label="Previous hero slide"
                   >
                     <span className="text-2xl leading-none">&lt;</span>
@@ -184,7 +184,7 @@ export default function HeroSection() {
                   <button
                     type="button"
                     onClick={() => setActiveSlide((prev) => (prev + 1) % slides.length)}
-                    className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition hover:bg-white"
+                    className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition duration-150 hover:bg-white"
                     aria-label="Next hero slide"
                   >
                     <span className="text-2xl leading-none">&gt;</span>
@@ -195,7 +195,7 @@ export default function HeroSection() {
                         key={slide._id}
                         type="button"
                         onClick={() => setActiveSlide(index)}
-                        className={`h-2.5 rounded-full transition-all ${index === activeSlide ? 'w-7 bg-brand-600' : 'w-2.5 bg-gray-300'}`}
+                        className={`h-2.5 rounded-full transition-all duration-150 ${index === activeSlide ? 'w-7 bg-brand-600' : 'w-2.5 bg-gray-300'}`}
                         aria-label={`Go to hero slide ${index + 1}`}
                       />
                     ))}
@@ -207,22 +207,22 @@ export default function HeroSection() {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.45 }}
+          transition={{ duration: 0.2, delay: 0.1 }}
           className="mx-auto mt-12 max-w-3xl"
         >
           <GlobalSearch />
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.6 }}
+          transition={{ duration: 0.2, delay: 0.15 }}
           className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4"
         >
           {stats.map((stat) => (
-            <div key={stat.label} className="rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm transition-shadow hover:shadow-md">
+            <div key={stat.label} className="rounded-2xl border border-gray-100 bg-white p-4 text-center shadow-sm transition-shadow duration-150 hover:shadow-md">
               <stat.icon className="mx-auto mb-1.5 h-5 w-5 text-[#1BAE9A]" />
               <p className="text-xl font-bold text-gray-900 md:text-2xl">
                 <AnimatedCounter value={stat.value} />

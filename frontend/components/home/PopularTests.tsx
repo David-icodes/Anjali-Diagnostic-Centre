@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Search, ArrowRight } from 'lucide-react'
+import { Search, ArrowRight, Sparkles } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -26,7 +26,7 @@ export default function PopularTests() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const sectionRef = useRef<HTMLDivElement>(null)
-  const isInView = useInView(sectionRef, { once: true, margin: '-100px' })
+  const isInView = useInView(sectionRef, { once: true, margin: '-80px' })
   const router = useRouter()
 
   useEffect(() => {
@@ -47,30 +47,29 @@ export default function PopularTests() {
   }, [])
 
   return (
-    <section className="bg-white px-4 py-16 sm:px-6 lg:px-8" id="popular-tests">
+    <section className="bg-white px-4 py-10 sm:px-6 sm:py-[60px] lg:px-8 lg:py-20" id="popular-tests">
       <div ref={sectionRef} className="mx-auto max-w-7xl">
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="mb-10 flex flex-col gap-3 text-center sm:mb-12"
+          transition={{ duration: 0.45 }}
+          className="mb-8 text-center sm:mb-10"
         >
-          <span className="mx-auto inline-flex rounded-full bg-brand-100 px-4 py-2 text-sm font-medium text-brand-700">
-            Popular Tests
-          </span>
-          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Most Booked Tests</h2>
-          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
-            Popular diagnostics selected by patients and highlighted automatically when the Popular toggle is enabled.
-          </p>
+          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#CFFAFE] bg-[#F0FDFA] px-3 py-1.5 text-sm font-medium text-[#0F766E]">
+            <Sparkles className="h-4 w-4" />
+            Most Popular
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">Popular Tests</h2>
+          <p className="mt-2 text-base text-gray-600">Frequently booked diagnostic services</p>
         </motion.div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-                <Skeleton className="h-48 rounded-none" />
-                <div className="space-y-3 p-5">
-                  <Skeleton className="h-4 w-24" />
+              <div key={index} className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+                <Skeleton className="h-36 rounded-none" />
+                <div className="space-y-3 p-4">
+                  <Skeleton className="h-4 w-20" />
                   <Skeleton className="h-5 w-full" />
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-10 w-full rounded-full" />
@@ -79,18 +78,18 @@ export default function PopularTests() {
             ))}
           </div>
         ) : error ? (
-          <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
             <Search className="mx-auto mb-4 h-10 w-10 text-gray-400" />
             <p className="text-sm text-gray-600 sm:text-base">{error}</p>
           </div>
         ) : tests.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
+          <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
             <p className="text-sm text-gray-600 sm:text-base">
               No popular tests are enabled right now. Turn on the Popular option in Test Management to show them here.
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
             {tests.map((test, index) => {
               const displayOfferPrice = test.offerPrice ?? test.originalPrice
               const hasDiscount = displayOfferPrice < test.originalPrice
@@ -98,46 +97,47 @@ export default function PopularTests() {
               return (
                 <motion.div
                   key={test._id}
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 18 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.4, delay: index * 0.06 }}
-                  className="group overflow-hidden rounded-[1.75rem] border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10"
+                  transition={{ duration: 0.35, delay: index * 0.05 }}
+                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                 >
-                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-brand-100 to-brand-50">
+                  <div className="p-4 pb-0">
+                    <Badge variant="info" className="rounded-full px-2.5 py-1 text-xs">{test.category}</Badge>
+                  </div>
+
+                  <div className="relative h-36 overflow-hidden bg-gradient-to-br from-[#F0FDFA] to-[#F8FAFC]">
                     {test.image ? (
                       <img
                         src={test.image}
                         alt={test.name}
-                        className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <Search className="h-10 w-10 text-brand-300" />
+                      <div className="flex h-full w-full items-center justify-center text-[#0F766E]">
+                        <Search className="h-12 w-12 opacity-80" />
                       </div>
                     )}
-                    <div className="absolute left-4 top-4">
-                      <Badge variant="info">{test.category}</Badge>
-                    </div>
                   </div>
 
-                  <div className="space-y-4 p-5">
+                  <div className="space-y-3 p-4 sm:p-5">
                     <div className="space-y-2">
-                      <h3 className="line-clamp-2 min-h-[3.5rem] text-lg font-semibold text-gray-900">{test.name}</h3>
-                      <p className="line-clamp-2 min-h-[2.5rem] text-sm leading-relaxed text-gray-600">
+                      <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">{test.name}</h3>
+                      <p className="line-clamp-2 text-sm leading-6 text-gray-600">
                         {test.description || 'Reliable diagnostic testing with patient-friendly service and timely reporting.'}
                       </p>
                     </div>
 
-                    <div className="flex items-end gap-3">
+                    <div className="flex items-end gap-2">
                       {hasDiscount ? (
                         <span className="text-sm text-gray-400 line-through">{formatPrice(test.originalPrice)}</span>
                       ) : null}
-                      <span className="text-2xl font-bold text-brand-600">{formatPrice(displayOfferPrice)}</span>
+                      <span className="text-2xl font-bold text-[#0F766E]">{formatPrice(displayOfferPrice)}</span>
                     </div>
 
                     <Button
                       variant="gradient"
-                      className="w-full rounded-full"
+                      className="h-11 w-full rounded-full bg-[#14B8A6] text-white shadow-sm hover:bg-[#0F766E]"
                       onClick={() => router.push(`/booking?test=${test._id}`)}
                     >
                       Book Test

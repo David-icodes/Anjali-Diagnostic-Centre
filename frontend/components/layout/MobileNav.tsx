@@ -17,10 +17,10 @@ interface MobileNavProps {
 }
 
 const itemVariants = {
-  hidden: { x: 60, opacity: 0 },
+  hidden: { x: 24, opacity: 0 },
   visible: (i: number) => ({
     x: 0, opacity: 1,
-    transition: { delay: 0.1 + i * 0.06, type: 'spring', stiffness: 120, damping: 12 },
+    transition: { delay: i * 0.02, duration: 0.15, ease: 'easeOut' },
   }),
 }
 
@@ -40,7 +40,7 @@ export default function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps)
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.15 }}
             className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
@@ -48,7 +48,7 @@ export default function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps)
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
             className="fixed inset-y-0 right-0 z-50 w-full max-w-sm border-l border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(237,248,255,0.94)_100%)] shadow-2xl backdrop-blur-xl"
           >
             <div className="flex items-center justify-between border-b border-[#D9ECE8] p-6">
@@ -63,20 +63,20 @@ export default function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps)
               </div>
               <button
                 onClick={onClose}
-                className="rounded-full p-2 text-gray-500 transition-colors hover:bg-[#F3FBF8] hover:text-[#0F9A88]"
+                className="rounded-full p-2 text-gray-500 transition-colors duration-150 hover:bg-[#F3FBF8] hover:text-[#0F9A88]"
                 aria-label="Close menu"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
-            <nav className="flex flex-col p-6 gap-1.5">
+            <nav className="flex flex-col gap-1.5 p-6">
               {navLinks.map((link, i) => (
                 <motion.div key={link.href} custom={i} variants={itemVariants} initial="hidden" animate="visible">
                   <Link
                     href={link.href}
                     onClick={onClose}
                     className={cn(
-                      'block rounded-2xl px-4 py-3 text-base font-medium transition-all duration-300',
+                      'block rounded-2xl px-4 py-3 text-base font-medium transition-all duration-150',
                       'hover:bg-[#F3FBF8] hover:pl-6 hover:text-[#0F9A88]',
                       pathname === link.href
                         ? 'border border-[#CFE9E3] bg-[#E8F8F5] text-[#0F9A88] shadow-sm'

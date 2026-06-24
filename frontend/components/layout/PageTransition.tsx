@@ -8,7 +8,7 @@ interface PageTransitionProps {
 }
 
 const variants = {
-  hidden: { opacity: 0, y: 24 },
+  hidden: { opacity: 0, y: 12 },
   visible: { opacity: 1, y: 0 },
 }
 
@@ -18,7 +18,7 @@ export default function PageTransition({ children, className }: PageTransitionPr
       variants={variants}
       initial="hidden"
       animate="visible"
-      transition={{ duration: 0.5, ease: 'easeOut' }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
       className={className}
     >
       {children}
