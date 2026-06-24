@@ -24,10 +24,16 @@ interface ContactInfo {
 }
 
 const defaultInfo: ContactInfo = {
-  address: 'Plot No. 347 HMT Hills Kukatpally Hyderabad - 500085',
-  phone: '+91 99892 20938',
+  address: `Plot No. 347, HMT Hills,
+Opp. Community Hall, Beside Park,
+Opp. JNTU, Kukatpally,
+Hyderabad – 500085,
+Telangana, India`,
+  phone: `+91 9989220938
++91 9440626892
+040-40147350`,
   email: 'anjalidiagnostics1602@gmail.com',
-  workingHours: 'Mon - Sat: 7:00 AM - 8:00 PM\nSun: 7:00 AM - 2:00 PM',
+  workingHours: 'Monday - Saturday\n6:00 AM - 10:00 PM',
 }
 
 export default function ContactPage() {
@@ -61,7 +67,7 @@ export default function ContactPage() {
 
   const contactItems = [
     { icon: MapPin, title: 'Address', content: info.address },
-    { icon: Phone, title: 'Phone Numbers', content: info.phone, href: `tel:${info.phone.replace(/\s/g, '')}` },
+    { icon: Phone, title: 'Phone Numbers', content: info.phone },
     { icon: Mail, title: 'Email', content: info.email, href: `mailto:${info.email}` },
     { icon: Clock, title: 'Working Hours', content: info.workingHours },
   ]
@@ -87,8 +93,8 @@ export default function ContactPage() {
                         <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-1.5" sizes="64px" />
                       </div>
                       <div>
-                        <h2 className="text-2xl font-bold text-gray-900">Center Information</h2>
-                        <p className="text-sm text-gray-500">Clean contact layout with quick details and map access.</p>
+                        <h2 className="text-2xl font-bold text-gray-900">Get in Touch</h2>
+                        <p className="text-sm text-gray-500">Reach us by phone, email, or visit our centre.</p>
                       </div>
                     </div>
 
@@ -98,9 +104,24 @@ export default function ContactPage() {
                           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-50">
                             <item.icon className="h-5 w-5 text-brand-600" />
                           </div>
-                          <div className="min-w-0">
+                          <div className="min-w-0 flex-1">
                             <p className="mb-1 text-sm font-semibold text-gray-900">{item.title}</p>
-                            {item.href ? (
+                            {item.title === 'Phone Numbers' ? (
+                              <div className="space-y-1">
+                                {item.content.split('\n').map((line, i) => {
+                                  const digits = line.replace(/[^\d+]/g, '')
+                                  return (
+                                    <a
+                                      key={i}
+                                      href={`tel:${digits}`}
+                                      className="block text-sm leading-relaxed text-gray-600 transition-colors hover:text-brand-600"
+                                    >
+                                      {line}
+                                    </a>
+                                  )
+                                })}
+                              </div>
+                            ) : item.href ? (
                               <a href={item.href} className="text-sm leading-relaxed text-gray-600 transition-colors hover:text-brand-600">
                                 {item.content}
                               </a>

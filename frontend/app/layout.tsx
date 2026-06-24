@@ -80,37 +80,40 @@ export const metadata: Metadata = {
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'MedicalBusiness',
+  '@type': ['DiagnosticCenter', 'MedicalBusiness', 'MedicalOrganization', 'LocalBusiness'],
+  '@id': `${baseUrl}/#business`,
   name: 'Anjali Diagnostic Centre',
   url: baseUrl,
+  legalName: 'Anjali Diagnostics Centre',
   logo: `${baseUrl}/branding/logo.png`,
-  telephone: '+919440626892',
+  image: `${baseUrl}/branding/logo.png`,
+  telephone: ['+919989220938', '+919440626892', '+9140147350'],
   email: 'anjalidiagnostics1602@gmail.com',
+  description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad.',
+  medicalSpecialty: 'Diagnostic',
+  areaServed: { '@type': 'City', name: 'Hyderabad' },
   address: {
     '@type': 'PostalAddress',
-    streetAddress: 'Plot No. 347, HMT Hills, Kukatpally',
+    streetAddress: 'Plot No. 347, HMT Hills, Opp. Community Hall, Beside Park, Opp. JNTU, Kukatpally',
     addressLocality: 'Hyderabad',
     addressRegion: 'Telangana',
     postalCode: '500085',
     addressCountry: 'IN',
   },
-  description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad.',
-  medicalSpecialty: 'Diagnostic',
-  areaServed: { '@type': 'City', name: 'Hyderabad' },
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',
       dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      opens: '07:00',
-      closes: '20:00',
-    },
-    {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: 'Sunday',
-      opens: '07:00',
-      closes: '14:00',
+      opens: '06:00',
+      closes: '22:00',
     },
   ],
+  sameAs: [
+    baseUrl,
+  ],
+  founder: { '@type': 'Organization', name: 'Anjali Diagnostic Centre' },
+  foundingDate: '2008',
+  duns: '414/DM & HO/RR/2008',
 }
 
 export default function RootLayout({

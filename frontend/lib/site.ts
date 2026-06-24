@@ -17,7 +17,7 @@ export const CENTRE_IMAGES = {
 }
 
 export const MAP_LINKS = {
-  place: 'https://www.google.com/maps/place/ANJALI+DIAGNOSTICS+CENTRE/',
+  place: 'https://www.google.com/maps/place/Plot+No.+347,+HMT+Hills,+Kukatpally,+Hyderabad,+Telangana+500085/',
   embed:
-    'https://www.google.com/maps?q=ANJALI+DIAGNOSTICS+CENTRE&z=15&output=embed',
+    'https://www.google.com/maps?q=Plot+No+347+HMT+Hills+Kukatpally+Hyderabad+500085&z=16&output=embed',
 }
