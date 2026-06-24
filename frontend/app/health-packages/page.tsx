@@ -50,44 +50,44 @@ export default function HealthPackagesPage() {
     <>
       <main className="min-h-screen">
         <PageTransition>
-          <section className="relative overflow-hidden bg-gradient-to-br from-[#1BAE9A] to-[#00C2A8] min-h-[30vh] flex items-center">
+          <section className="relative flex min-h-[30vh] items-center overflow-hidden bg-gradient-to-br from-[#1BAE9A] to-[#00C2A8]">
             <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[80px]" />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full relative">
+            <div className="absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-white/10 blur-[80px]" />
+            <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/90 text-sm font-medium mb-6 border border-white/20">
-                  <Sparkles className="w-4 h-4" /> Health Packages
+                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white/90">
+                  <Sparkles className="h-4 w-4" /> Health Packages
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight mb-4">
+                <h1 className="mb-4 text-4xl font-bold leading-tight text-white sm:text-5xl">
                   Health Checkup Packages
                 </h1>
-                <p className="text-lg text-white/80 max-w-xl mx-auto">
+                <p className="mx-auto max-w-xl text-lg text-white/80">
                   Curated health packages for comprehensive wellness
                 </p>
               </motion.div>
             </div>
           </section>
 
-          <section className="py-16 bg-[#F8FBFC]">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="bg-[#F8FBFC] py-16">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
               {loading ? (
                 <div className="space-y-6">
                   {Array.from({ length: 2 }).map((_, i) => (
-                    <div key={i} className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xl shadow-gray-100/50 animate-pulse">
+                    <div key={i} className="animate-pulse overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-gray-100/50">
                       <div className="grid md:grid-cols-3">
                         <div className="h-64 bg-gray-100" />
-                        <div className="md:col-span-2 p-8 space-y-4">
-                          <div className="h-6 bg-gray-100 rounded w-1/3" />
-                          <div className="h-4 bg-gray-100 rounded w-full" />
-                          <div className="h-4 bg-gray-100 rounded w-2/3" />
+                        <div className="space-y-4 p-8 md:col-span-2">
+                          <div className="h-6 w-1/3 rounded bg-gray-100" />
+                          <div className="h-4 w-full rounded bg-gray-100" />
+                          <div className="h-4 w-2/3 rounded bg-gray-100" />
                         </div>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : packages.length === 0 ? (
-                <div className="text-center py-20">
-                  <p className="text-gray-400 text-lg">No health packages available at the moment.</p>
+                <div className="py-20 text-center">
+                  <p className="text-lg text-gray-400">No health packages available at the moment.</p>
                 </div>
               ) : (
                 packages.map((pkg, i) => {
@@ -101,54 +101,54 @@ export default function HealthPackagesPage() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-xl shadow-gray-100/50 mb-6"
+                      className="mb-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-gray-100/50"
                     >
-                      <div className="grid md:grid-cols-3 gap-0">
-                        <div className="md:col-span-1 bg-gradient-to-br from-[#1BAE9A] to-[#00C2A8] p-8 text-white flex flex-col justify-between">
+                      <div className="grid gap-0 md:grid-cols-3">
+                        <div className="flex flex-col justify-between bg-gradient-to-br from-[#1BAE9A] to-[#00C2A8] p-8 text-white md:col-span-1">
                           <div>
-                            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center mb-5">
-                              <Icon className="w-7 h-7" />
+                            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
+                              <Icon className="h-7 w-7" />
                             </div>
-                            <h2 className="text-2xl font-bold mb-2">{pkg.name}</h2>
-                            <p className="text-white/80 text-sm mb-4">{pkg.description}</p>
-                            <div className="flex items-center gap-2 mb-2">
+                            <h2 className="mb-2 text-2xl font-bold">{pkg.name}</h2>
+                            <p className="mb-4 text-sm text-white/80">{pkg.description}</p>
+                            <div className="mb-2 flex items-center gap-2">
                               {pkg.benefits?.length > 0 && (
-                                <span className="bg-white/20 text-xs font-medium px-3 py-1 rounded-full">
+                                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium">
                                   {pkg.benefits.length} Benefits
                                 </span>
                               )}
                               {discount > 0 && (
-                                <span className="bg-[#4CAF50] text-xs font-bold px-3 py-1 rounded-full">
+                                <span className="rounded-full bg-[#4CAF50] px-3 py-1 text-xs font-bold">
                                   {discount}% OFF
                                 </span>
                               )}
                             </div>
                           </div>
                           <div className="mt-6">
-                            <div className="flex items-baseline gap-2 mb-2">
-                              <span className="text-3xl font-bold">₹{(pkg.offerPrice || 0).toLocaleString('en-IN')}</span>
+                            <div className="mb-2 flex items-baseline gap-2">
+                              <span className="text-3xl font-bold">?{(pkg.offerPrice || 0).toLocaleString('en-IN')}</span>
                               {pkg.originalPrice > pkg.offerPrice && (
-                                <span className="text-white/60 line-through text-sm">₹{(pkg.originalPrice || 0).toLocaleString('en-IN')}</span>
+                                <span className="text-sm text-white/60 line-through">?{(pkg.originalPrice || 0).toLocaleString('en-IN')}</span>
                               )}
                             </div>
-                            <div className="flex items-center gap-4 text-white/80 text-sm">
+                            <div className="flex items-center gap-4 text-sm text-white/80">
                               {pkg.homeCollectionAvailable && (
-                                <span className="flex items-center gap-1"><Truck className="w-3.5 h-3.5" /> Home Collection</span>
+                                <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5" /> Home Collection</span>
                               )}
-                              <span className="flex items-center gap-1"><Building2 className="w-3.5 h-3.5" /> Lab Visit</span>
+                              <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> Lab Visit</span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="md:col-span-2 p-8">
+                        <div className="p-8 md:col-span-2">
                           {tests.length > 0 && (
                             <>
-                              <h3 className="text-lg font-semibold text-gray-900 mb-4">Tests Included ({tests.length})</h3>
-                              <div className="grid sm:grid-cols-2 gap-3 mb-6">
+                              <h3 className="mb-4 text-lg font-semibold text-gray-900">Tests Included ({tests.length})</h3>
+                              <div className="mb-6 grid gap-3 sm:grid-cols-2">
                                 {tests.map((test: string, j: number) => (
                                   <div key={j} className="flex items-center gap-3 text-sm text-gray-600">
-                                    <div className="w-6 h-6 rounded-full bg-[#1BAE9A]/10 flex items-center justify-center shrink-0">
-                                      <Check className="w-3.5 h-3.5 text-[#1BAE9A]" />
+                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1BAE9A]/10">
+                                      <Check className="h-3.5 w-3.5 text-[#1BAE9A]" />
                                     </div>
                                     <span>{test}</span>
                                   </div>
@@ -159,17 +159,17 @@ export default function HealthPackagesPage() {
 
                           <div className="flex flex-wrap gap-3">
                             <Link href="/booking">
-                              <Button size="lg" className="bg-[#1BAE9A] hover:bg-[#168E7E] text-white shadow-lg shadow-[#1BAE9A]/25">
+                              <Button size="lg" className="bg-[#1BAE9A] text-white shadow-lg shadow-[#1BAE9A]/25 hover:bg-[#168E7E]">
                                 Book Package
-                                <ArrowRight className="w-5 h-5 ml-2" />
+                                <ArrowRight className="ml-2 h-5 w-5" />
                               </Button>
                             </Link>
                             {tests.length > 0 && (
                               <button
                                 onClick={() => setExpandedPkg(isExpanded ? null : pkg._id)}
-                                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-600 hover:border-[#1BAE9A]/30 hover:text-[#1BAE9A] transition-all"
+                                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-3 text-sm font-medium text-gray-600 transition-all hover:border-[#1BAE9A]/30 hover:text-[#1BAE9A]"
                               >
-                                <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                                 {isExpanded ? 'Show Less' : 'View Details'}
                               </button>
                             )}
@@ -185,13 +185,13 @@ export default function HealthPackagesPage() {
                                   transition={{ duration: 0.3 }}
                                   className="overflow-hidden"
                                 >
-                                  <div className="mt-6 pt-6 border-t border-gray-100">
-                                    <h4 className="font-medium text-gray-900 mb-3">Benefits</h4>
+                                  <div className="mt-6 border-t border-gray-100 pt-6">
+                                    <h4 className="mb-3 font-medium text-gray-900">Benefits</h4>
                                     <div className="space-y-3">
                                       {pkg.benefits.map((benefit: string, j: number) => (
                                         <div key={j} className="flex items-start gap-3">
-                                          <div className="w-6 h-6 rounded-full bg-[#1BAE9A]/10 flex items-center justify-center shrink-0 mt-0.5">
-                                            <Check className="w-3.5 h-3.5 text-[#1BAE9A]" />
+                                          <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1BAE9A]/10">
+                                            <Check className="h-3.5 w-3.5 text-[#1BAE9A]" />
                                           </div>
                                           <p className="text-sm text-gray-600">{benefit}</p>
                                         </div>

@@ -51,13 +51,13 @@ export default function OffersSection() {
   }
 
   return (
-    <section className="bg-[#F8FAFC] px-4 py-10 sm:px-6 sm:py-[60px] lg:px-8 lg:py-20" id="offers">
+    <section className="bg-[#F8FAFC] px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16" id="offers">
       <div ref={sectionRef} className="mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.45 }}
-          className="mb-8 text-center sm:mb-10"
+          transition={{ duration: 0.25 }}
+          className="mb-6 text-center sm:mb-8"
         >
           <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#FDE7B0] bg-[#FFF7E6] px-3 py-1.5 text-sm font-medium text-[#B45309]">
             <Sparkles className="h-4 w-4" />
@@ -68,11 +68,11 @@ export default function OffersSection() {
         </motion.div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {[1, 2, 3].map((item) => <Skeleton key={item} className="h-[360px] rounded-2xl" />)}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3].map((item) => <Skeleton key={item} className="h-[300px] rounded-2xl" />)}
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {offers.map((offer, index) => {
               const savings = Math.max(offer.originalPrice - offer.offerPrice, 0)
               const percentage = offer.originalPrice > 0 ? Math.round((savings / offer.originalPrice) * 100) : 0
@@ -81,52 +81,54 @@ export default function OffersSection() {
               return (
                 <motion.div
                   key={offer._id}
-                  initial={{ opacity: 0, y: 18 }}
+                  initial={{ opacity: 0, y: 16 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.35, delay: index * 0.05 }}
-                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                  transition={{ duration: 0.2, delay: index * 0.04 }}
+                  className="group flex h-[290px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-150 hover:-translate-y-[3px] hover:shadow-lg"
                 >
-                  <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#E6FFFB] to-[#F8FAFC]">
-                    {offer.image ? (
-                      <img src={offer.image} alt={offer.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center text-[#0F766E]">
-                        <Search className="h-12 w-12 opacity-80" />
-                      </div>
-                    )}
+                  <div className="relative h-[130px] overflow-hidden bg-gradient-to-br from-[#E6FFFB] to-[#F8FAFC] px-4 py-3">
                     <div className="absolute left-3 top-3 flex flex-wrap gap-2">
                       <Badge variant="warning" className="rounded-full px-2.5 py-1 text-xs font-semibold">{badgeText}</Badge>
                       <Badge variant="info" className="rounded-full px-2.5 py-1 text-xs">{offer.category}</Badge>
                     </div>
+                    <div className="flex h-full items-center justify-center pt-7">
+                      {offer.image ? (
+                        <img src={offer.image} alt={offer.name} className="h-full max-h-[86px] w-full object-contain" />
+                      ) : (
+                        <Search className="h-10 w-10 text-[#0F766E] opacity-70" />
+                      )}
+                    </div>
                   </div>
 
-                  <div className="space-y-4 p-4 sm:p-5">
+                  <div className="flex flex-1 flex-col justify-between p-4">
                     <div className="space-y-2">
                       <p className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#F59E0B]">
                         <BadgePercent className="h-3.5 w-3.5" />
                         {offer.offerLabel || 'Limited Offer'}
                       </p>
-                      <h3 className="line-clamp-2 text-xl font-semibold text-gray-900">{offer.name}</h3>
-                      <p className="line-clamp-2 text-sm leading-6 text-gray-600">
+                      <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">{offer.name}</h3>
+                      <p className="line-clamp-2 text-sm leading-5 text-gray-600">
                         {offer.description || 'Save more on essential diagnostics with accurate testing and patient-friendly support.'}
                       </p>
                     </div>
 
-                    <div className="rounded-2xl border border-emerald-100 bg-[#F0FDFA] p-4">
-                      <div className="flex items-end gap-3">
-                        <span className="text-sm text-gray-400 line-through">{formatPrice(offer.originalPrice)}</span>
-                        <span className="text-2xl font-bold text-[#0F766E]">{formatPrice(offer.offerPrice)}</span>
+                    <div className="space-y-3 pt-3">
+                      <div className="rounded-xl border border-emerald-100 bg-[#F0FDFA] px-3 py-2.5">
+                        <div className="flex items-end gap-2">
+                          <span className="text-xs text-gray-400 line-through">{formatPrice(offer.originalPrice)}</span>
+                          <span className="text-2xl font-bold text-[#0F766E]">{formatPrice(offer.offerPrice)}</span>
+                        </div>
+                        <p className="mt-1 text-sm font-medium text-[#0F766E]">Savings {formatPrice(savings)}</p>
                       </div>
-                      <p className="mt-2 text-sm font-medium text-[#0F766E]">Savings {formatPrice(savings)}</p>
-                    </div>
 
-                    <Button
-                      className="h-11 w-full rounded-full bg-[#14B8A6] text-white shadow-sm transition-all hover:bg-[#0F766E]"
-                      onClick={() => router.push(`/booking?test=${offer._id}`)}
-                    >
-                      Book Now
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
+                      <Button
+                        className="h-10 w-full rounded-full bg-[#14B8A6] text-white shadow-sm transition-all duration-150 hover:bg-[#0F766E]"
+                        onClick={() => router.push(`/booking?test=${offer._id}`)}
+                      >
+                        Book Now
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </motion.div>
               )
