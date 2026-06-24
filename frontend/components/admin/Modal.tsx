@@ -72,7 +72,7 @@ export default function Modal({
                     variant="ghost"
                     size="icon"
                     onClick={onClose}
-                    className="shrink-0 text-gray-400 hover:text-gray-600"
+                    className="shrink-0 text-gray-500 hover:text-gray-600"
                   >
                     <X className="h-4 w-4" />
                   </Button>

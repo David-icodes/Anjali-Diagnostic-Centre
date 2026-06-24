@@ -65,7 +65,7 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
           </Button>
           <div>
             <h1 className="text-base font-semibold leading-tight text-gray-900">{title}</h1>
-            <p className="hidden text-[11px] leading-tight text-gray-400 sm:block">{clock ? `${clock} IST` : ''}</p>
+            <p className="hidden text-[11px] leading-tight text-gray-500 sm:block">{clock ? `${clock} IST` : ''}</p>
           </div>
         </div>
 
@@ -91,9 +91,9 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
                 </Avatar>
                 <div className="hidden text-left leading-tight md:block">
                   <p className="text-xs font-medium text-gray-700">{user?.name || 'Admin'}</p>
-                  <p className="text-[10px] text-gray-400">{user?.role || 'Administrator'}</p>
+                  <p className="text-[10px] text-gray-500">{user?.role || 'Administrator'}</p>
                 </div>
-                <ChevronDown className="hidden h-3 w-3 text-gray-400 md:block" />
+                <ChevronDown className="hidden h-3 w-3 text-gray-500 md:block" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent

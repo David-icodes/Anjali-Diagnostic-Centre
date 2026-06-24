@@ -110,6 +110,7 @@ export default function AdminLoginPage() {
               key={shakeKey}
               onSubmit={handleSubmit(onSubmit)}
               className="space-y-5"
+              style={{ '--foreground': '210 40% 98%' } as React.CSSProperties}
               animate={shakeKey ? { x: [0, -10, 10, -10, 10, 0] } : {}}
               transition={{ duration: 0.4 }}
             >
@@ -120,7 +121,7 @@ export default function AdminLoginPage() {
                   placeholder="Enter username or email"
                   error={errors.username?.message}
                   {...register('username')}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-brand-400 focus:ring-brand-400"
+                  className="bg-white/90 border-white/20 text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500"
                 />
               </div>
 
@@ -131,12 +132,12 @@ export default function AdminLoginPage() {
                   placeholder="Enter your password"
                   error={errors.password?.message}
                   {...register('password')}
-                  className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-brand-400 focus:ring-brand-400 pr-10"
+                  className="bg-white/90 border-white/20 text-gray-900 placeholder:text-gray-500 focus:border-brand-500 focus:ring-brand-500 pr-10"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>

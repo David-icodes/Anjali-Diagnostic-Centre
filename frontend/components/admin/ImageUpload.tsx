@@ -98,7 +98,7 @@ export default function ImageUpload({ value, onChange, existingImage }: ImageUpl
             <p className="text-sm font-medium text-gray-600">
               Drop an image here or click to browse
             </p>
-            <p className="text-xs text-gray-400 mt-1">PNG, JPG, WEBP up to 5MB</p>
+            <p className="text-xs text-gray-500 mt-1">PNG, JPG, WEBP up to 5MB</p>
           </div>
         </div>
       )}

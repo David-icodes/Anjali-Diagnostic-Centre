@@ -286,7 +286,7 @@ export default function ReportsPage() {
               <p className="text-sm text-gray-500">Only bookings with status `Sample Collected` or `Processing` are eligible for upload.</p>
             </div>
             <div className="relative w-full lg:max-w-sm">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
               <input type="text" value={pendingSearch} onChange={(e) => setPendingSearch(e.target.value)} placeholder="Search by booking ID, patient, phone, DOB..." className="h-10 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm" />
             </div>
           </div>
@@ -339,7 +339,7 @@ export default function ReportsPage() {
             </div>
             <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
               <div className="relative w-full sm:min-w-[320px]">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                 <input type="text" value={uploadedSearch} onChange={(e) => setUploadedSearch(e.target.value)} placeholder="Search uploaded reports..." className="h-10 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm" />
               </div>
               {isSuperAdmin && (

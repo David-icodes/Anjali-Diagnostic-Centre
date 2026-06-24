@@ -106,7 +106,7 @@ export default function EnquiriesPage() {
       </div>
 
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
         <Input
           placeholder="Search by name, email or mobile..."
           className="pl-10"
@@ -125,7 +125,7 @@ export default function EnquiriesPage() {
         <div className="text-center py-20">
           <Mail className="h-12 w-12 mx-auto text-gray-300 mb-4" />
           <h3 className="text-lg font-medium text-gray-500">No enquiries found</h3>
-          <p className="text-gray-400 mt-1">When customers submit enquiries, they will appear here.</p>
+          <p className="text-gray-500 mt-1">When customers submit enquiries, they will appear here.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -149,7 +149,7 @@ export default function EnquiriesPage() {
                       <div className="shrink-0">
                         {enquiry.isRead ? (
                           <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                            <Mail className="h-4 w-4 text-gray-400" />
+                            <Mail className="h-4 w-4 text-gray-500" />
                           </div>
                         ) : (
                           <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -198,9 +198,9 @@ export default function EnquiriesPage() {
                           <Trash2 className="h-4 w-4" />
                         </Button>
                         {expandedId === enquiry._id ? (
-                          <ChevronUp className="h-4 w-4 text-gray-400" />
+                          <ChevronUp className="h-4 w-4 text-gray-500" />
                         ) : (
-                          <ChevronDown className="h-4 w-4 text-gray-400" />
+                          <ChevronDown className="h-4 w-4 text-gray-500" />
                         )}
                       </div>
                     </div>

@@ -96,7 +96,7 @@ export default function StatsCard({
                 >
                   {trend.isPositive ? '+' : ''}{trend.value}%
                 </span>
-                <span className="text-xs text-gray-400">vs last month</span>
+                <span className="text-xs text-gray-500">vs last month</span>
               </div>
             )}
           </div>

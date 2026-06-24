@@ -188,13 +188,13 @@ export default function BookingsPage() {
       <Card className="border-gray-200 shadow-sm">
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
             <input
               type="text"
               placeholder="Search by booking ID, patient name, or mobile..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400"
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500"
             />
           </div>
           <Select value={serviceFilter} onValueChange={(v) => { setServiceFilter(v); setPage(1) }}>
@@ -329,7 +329,7 @@ export default function BookingsPage() {
                                   <p className={`text-sm font-semibold ${isLatest ? 'text-emerald-700' : 'text-gray-900'}`}>{entry.status}</p>
                                   <p className="mt-1 text-xs text-gray-500">Updated by {entry.updatedBy || 'System'}</p>
                                 </div>
-                                <p className="text-xs font-medium text-gray-400">{new Date(entry.updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
+                                <p className="text-xs font-medium text-gray-500">{new Date(entry.updatedAt).toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</p>
                               </div>
                             </div>
                           </div>
@@ -387,7 +387,7 @@ function InfoRow({
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-medium uppercase tracking-[0.16em] text-gray-400">{label}</p>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-gray-500">{label}</p>
         <p className="mt-1 break-words text-sm font-semibold text-gray-900">{value}</p>
       </div>
     </div>
@@ -405,7 +405,7 @@ function MiniDetail({
 }) {
   return (
     <div className="rounded-xl border border-white/70 bg-white/80 p-3">
-      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-gray-400">
+      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-gray-500">
         <Icon className="h-3.5 w-3.5 text-emerald-600" />
         {label}
       </div>

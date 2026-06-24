@@ -104,13 +104,13 @@ export default function DataTable<T extends Record<string, any>>({
     <div className="space-y-4">
       {searchable && (
         <div className="relative max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input
             type="text"
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search..."
-            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 outline-none transition-all focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-500/20"
+            className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-500 outline-none transition-all focus:border-brand-400 focus:bg-white focus:ring-2 focus:ring-brand-500/20"
           />
         </div>
       )}
@@ -118,7 +118,7 @@ export default function DataTable<T extends Record<string, any>>({
       {paginated.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center rounded-xl border border-dashed border-gray-200">
           <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center mb-3">
-            <Search className="w-5 h-5 text-gray-400" />
+            <Search className="w-5 h-5 text-gray-500" />
           </div>
           <p className="text-sm text-gray-500 font-medium">{emptyMessage}</p>
         </div>

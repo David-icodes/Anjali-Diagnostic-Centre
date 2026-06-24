@@ -110,7 +110,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
               <AnimatePresence>
                 {!collapsed && (
                   <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-gray-400"
+                    className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-gray-500"
                   >
                     {group.label}
                   </motion.p>
@@ -129,7 +129,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
                             : 'border-transparent text-gray-500 hover:bg-gray-50 hover:text-gray-700'
                         )}
                       >
-                        <item.icon className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-brand-600' : 'text-gray-400')} />
+                        <item.icon className={cn('h-4.5 w-4.5 shrink-0', active ? 'text-brand-600' : 'text-gray-500')} />
                         <AnimatePresence>
                           {!collapsed && (
                             <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -149,7 +149,7 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
         <div className="shrink-0 border-t border-gray-100">
           <button
             onClick={() => onCollapse?.(!collapsed)}
-            className="hidden h-8 w-full items-center justify-center text-gray-400 transition-all hover:bg-brand-50 hover:text-brand-600 lg:flex"
+            className="hidden h-8 w-full items-center justify-center text-gray-500 transition-all hover:bg-brand-50 hover:text-brand-600 lg:flex"
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
@@ -164,13 +164,13 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
               {!collapsed && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium leading-tight text-gray-900">{user?.name || 'Admin'}</p>
-                  <p className="truncate text-[10px] text-gray-400">{user?.role || 'Administrator'}</p>
+                  <p className="truncate text-[10px] text-gray-500">{user?.role || 'Administrator'}</p>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
           <Button variant="ghost" size="sm" onClick={handleLogout}
-            className={cn('h-9 w-full rounded-none text-xs text-gray-400 hover:bg-red-50 hover:text-red-600', collapsed && 'px-0')}
+            className={cn('h-9 w-full rounded-none text-xs text-gray-500 hover:bg-red-50 hover:text-red-600', collapsed && 'px-0')}
           >
             <LogOut className="h-3.5 w-3.5 shrink-0" />
             <AnimatePresence>{!collapsed && <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="ml-2">Sign Out</motion.span>}</AnimatePresence>

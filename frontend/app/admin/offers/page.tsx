@@ -161,7 +161,7 @@ export default function OffersPage() {
             </div>
 
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
                 placeholder="Search offers by title or coupon code..."
                 className="pl-10"
@@ -189,7 +189,7 @@ export default function OffersPage() {
               <div className="text-center py-20">
                 <Tag className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-500">No offers found</h3>
-                <p className="text-gray-400 mt-1">Click "Add Offer" to create your first offer.</p>
+                <p className="text-gray-500 mt-1">Click "Add Offer" to create your first offer.</p>
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -244,7 +244,7 @@ export default function OffersPage() {
                               </Badge>
                             </div>
                           )}
-                          <div className="flex items-center text-xs text-gray-400 mb-4">
+                          <div className="flex items-center text-xs text-gray-500 mb-4">
                             <Calendar className="h-3 w-3 mr-1" />
                             {formatDate(offer.validFrom)} - {formatDate(offer.validUntil)}
                           </div>

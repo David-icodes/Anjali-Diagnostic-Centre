@@ -235,7 +235,7 @@ export default function ActivityLogsPage() {
                       <Badge className={`px-1.5 py-0 text-[10px] ${getActionColor(log.action)}`}>{log.action}</Badge>
                     </div>
                     <p className="mt-0.5 text-sm text-gray-500">{log.details}</p>
-                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-400">
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-gray-500">
                       <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatDate(log.createdAt)}</span>
                       {log.ipAddress && <span className="flex items-center gap-1"><Globe className="h-3 w-3" />{log.ipAddress}</span>}
                       {showArchived && log.archivedAt && <span className="flex items-center gap-1"><FolderArchive className="h-3 w-3" />Archived {formatDate(log.archivedAt)}</span>}

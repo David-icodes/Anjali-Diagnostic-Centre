@@ -143,7 +143,7 @@ export default function TestimonialsPage() {
             </div>
 
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
               <Input
                 placeholder="Search testimonials..."
                 className="pl-10"
@@ -169,7 +169,7 @@ export default function TestimonialsPage() {
               <div className="text-center py-20">
                 <Quote className="h-12 w-12 mx-auto text-gray-300 mb-4" />
                 <h3 className="text-lg font-medium text-gray-500">No testimonials found</h3>
-                <p className="text-gray-400 mt-1">Click "Add Testimonial" to create your first one.</p>
+                <p className="text-gray-500 mt-1">Click "Add Testimonial" to create your first one.</p>
               </div>
             ) : (
               <div className="grid gap-6 md:grid-cols-2">

@@ -254,7 +254,7 @@ export default function TestsPage() {
       header: 'Pricing',
       render: (test) => (
         <div>
-          <p className={`font-medium ${test.hasOffer ? 'text-gray-400 line-through' : 'text-gray-900'}`}>{formatPrice(test.originalPrice)}</p>
+          <p className={`font-medium ${test.hasOffer ? 'text-gray-500 line-through' : 'text-gray-900'}`}>{formatPrice(test.originalPrice)}</p>
           {test.hasOffer ? <p className="text-sm font-semibold text-emerald-600">{formatPrice(test.offerPrice)}</p> : null}
         </div>
       ),
@@ -278,7 +278,7 @@ export default function TestsPage() {
           <p className="font-medium text-gray-900">{test.offerLabel || 'Special Offer'}</p>
           <p className="text-xs text-gray-500">{test.offerBadge || 'Homepage offer card enabled'}</p>
         </div>
-      ) : <span className="text-sm text-gray-400">No offer</span>,
+      ) : <span className="text-sm text-gray-500">No offer</span>,
     },
     {
       key: '_id',
@@ -314,13 +314,13 @@ export default function TestsPage() {
 
       <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
           <input
             type="text"
             placeholder="Search tests..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-            className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400"
+            className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-500"
           />
         </div>
         <Select value={categoryFilter || 'all'} onValueChange={(v) => { setCategoryFilter(v === 'all' ? '' : v); setPage(1) }}>

@@ -224,19 +224,19 @@ export default function DashboardPage() {
           <CardHeader className="px-5 pb-2 pt-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold text-gray-700">Recent Bookings</CardTitle>
-              <span className="text-[10px] font-medium text-gray-400">{dashboard.totalBookings} total</span>
+              <span className="text-[10px] font-medium text-gray-500">{dashboard.totalBookings} total</span>
             </div>
           </CardHeader>
           <CardContent className="px-0 pb-1">
             <table className="w-full text-[11px]">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">ID</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Patient</th>
-                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 sm:table-cell">Service</th>
-                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 md:table-cell">Type</th>
-                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 sm:table-cell">Date</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Status</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500">ID</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500">Patient</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500 sm:table-cell">Service</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500 md:table-cell">Type</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500 sm:table-cell">Date</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -265,18 +265,18 @@ export default function DashboardPage() {
           <CardHeader className="px-5 pb-2 pt-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold text-gray-700">Uploaded Reports</CardTitle>
-              <span className="text-[10px] font-medium text-gray-400">{dashboard.recentReports.length} recent</span>
+              <span className="text-[10px] font-medium text-gray-500">{dashboard.recentReports.length} recent</span>
             </div>
           </CardHeader>
           <CardContent className="px-0 pb-1">
             <table className="w-full text-[11px]">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Patient</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Mobile</th>
-                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 sm:table-cell">Booking</th>
-                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 sm:table-cell">Date</th>
-                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Status</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500">Patient</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500">Mobile</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500 sm:table-cell">Booking</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500 sm:table-cell">Date</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-500">Status</th>
                 </tr>
               </thead>
               <tbody>
@@ -325,7 +325,7 @@ function CompactStat({ label, value, icon: Icon, color }: { label: string; value
         <Icon className="h-4 w-4 text-white" />
       </div>
       <div className="min-w-0">
-        <p className="truncate text-[10px] font-medium uppercase tracking-wider text-gray-400">{label}</p>
+        <p className="truncate text-[10px] font-medium uppercase tracking-wider text-gray-500">{label}</p>
         <p className="mt-0.5 text-sm font-bold text-gray-900">{typeof value === 'number' ? value.toLocaleString('en-IN') : value}</p>
       </div>
     </div>
@@ -339,7 +339,7 @@ function MiniStat({ label, value, icon: Icon }: { label: string; value: number; 
         <Icon className="h-3.5 w-3.5 text-gray-500" />
       </div>
       <div>
-        <p className="text-[9px] font-medium uppercase tracking-wider text-gray-400">{label}</p>
+        <p className="text-[9px] font-medium uppercase tracking-wider text-gray-500">{label}</p>
         <p className="text-xs font-bold text-gray-900">{value.toLocaleString('en-IN')}</p>
       </div>
     </div>
