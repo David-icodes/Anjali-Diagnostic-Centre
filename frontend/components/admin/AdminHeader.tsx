@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { Bell, Menu, Plus, ChevronDown, LogOut } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { Menu, Plus, ChevronDown, LogOut } from 'lucide-react'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,6 +18,8 @@ const pageTitles: Record<string, string> = {
   '/admin/tests': 'Lab Tests',
   '/admin/radiology': 'Radiology Services',
   '/admin/reports': 'Report Management',
+  '/admin/offers': 'Offers',
+  '/admin/hero-slides': 'Hero Slider Management',
   '/admin/activity-logs': 'Activity Logs',
   '/admin/settings': 'System Settings',
 }
@@ -57,8 +58,8 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
   }
 
   return (
-    <header className="sticky top-0 z-30 h-14 bg-white border-b border-gray-200">
-      <div className="flex items-center justify-between h-full px-4 lg:px-6">
+    <header className="sticky top-0 z-30 border-b border-white/70 bg-white/75 shadow-[0_12px_30px_rgba(15,118,110,0.08)] backdrop-blur-xl">
+      <div className="flex h-14 items-center justify-between px-4 lg:h-[60px] lg:px-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onMenuToggle} className="lg:hidden text-gray-500 hover:text-brand-600 -ml-2">
             <Menu className="w-5 h-5" />
@@ -70,14 +71,9 @@ export default function AdminHeader({ onMenuToggle }: AdminHeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="default" size="sm" className="h-8 gap-1.5 text-xs rounded-lg bg-brand-600 hover:bg-brand-700 shadow-sm" onClick={() => router.push('/admin/bookings')}>
+          <Button variant="default" size="sm" className="h-9 gap-1.5 rounded-full bg-gradient-to-r from-brand-600 to-emerald-500 px-4 text-xs shadow-sm" onClick={() => router.push('/admin/bookings')}>
             <Plus className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">New Booking</span>
-          </Button>
-
-          <Button variant="ghost" size="icon" className="relative text-gray-400 hover:text-brand-600 w-8 h-8">
-            <Bell className="w-4.5 h-4.5" />
-            <span className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-red-500 text-[7px] font-bold text-white flex items-center justify-center">3</span>
           </Button>
 
           <DropdownMenu>

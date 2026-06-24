@@ -91,6 +91,19 @@ const bookingSchema = mongoose.Schema(
       userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
       username: { type: String, default: '' },
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    deletedBy: {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+      username: { type: String, default: '' },
+    },
     additionalNotes: {
       type: String,
       default: '',

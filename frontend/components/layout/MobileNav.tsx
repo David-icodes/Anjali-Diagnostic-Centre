@@ -58,7 +58,7 @@ export default function MobileNav({ isOpen, onClose, navLinks }: MobileNavProps)
                 </div>
                 <div>
                   <p className="text-lg font-bold text-gray-900">Menu</p>
-                  <p className="text-xs text-[#0F9A88]">{BRAND.name}</p>
+                  <p className="text-sm font-semibold text-[#0F9A88]">{BRAND.name}</p>
                 </div>
               </div>
               <button

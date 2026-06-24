@@ -130,7 +130,7 @@ const createBooking = async (req, res) => {
 const getBookings = async (req, res) => {
   try {
     const { status, search, serviceType, dob, page = 1, limit = 10 } = req.query;
-    const query = { isArchived: { $ne: true } };
+    const query = { isArchived: { $ne: true }, isDeleted: { $ne: true } };
 
     if (status && status.trim()) query.status = status;
     if (serviceType) query.serviceType = serviceType;
@@ -164,6 +164,8 @@ const getBookings = async (req, res) => {
 const getBookingById = async (req, res) => {
   try {
     const booking = await Booking.findOne({
+      isDeleted: { $ne: true },
+      isArchived: { $ne: true },
       $or: [
         { _id: mongoose.isValidObjectId(req.params.id) ? req.params.id : null },
         { bookingId: req.params.id },
@@ -185,6 +187,7 @@ const trackBooking = async (req, res) => {
 
     const booking = await Booking.findOne({
       isArchived: { $ne: true },
+      isDeleted: { $ne: true },
       patientName: { $regex: patientName, $options: 'i' },
       mobileNumber,
     }).sort({ createdAt: -1 });
@@ -295,23 +298,52 @@ const deleteBooking = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    const bookingObjectId = booking._id;
-    const bookingId = booking.bookingId;
-
-    await Revenue.deleteMany({ booking: bookingObjectId });
-    await Report.deleteMany({ booking: bookingObjectId });
-    await Booking.deleteOne({ _id: bookingObjectId });
+    booking.isDeleted = true;
+    booking.deletedAt = new Date();
+    booking.deletedBy = {
+      userId: req.user?._id || null,
+      username: req.user?.name || req.user?.username || '',
+    };
+    await booking.save();
 
     await ActivityLog.create({
       user: req.user?._id,
       username: req.user?.name || 'System',
       action: 'Booking Deleted',
-      bookingId,
-      details: `Permanently deleted booking ${bookingId}`,
+      bookingId: booking.bookingId,
+      details: `Soft deleted booking ${booking.bookingId}`,
       ipAddress: req.ip,
     });
 
-    res.json({ message: 'Booking deleted successfully', bookingId });
+    res.json({ message: 'Booking deleted successfully', bookingId: booking.bookingId });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const restoreBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    booking.isDeleted = false;
+    booking.deletedAt = null;
+    booking.deletedBy = { userId: null, username: '' };
+    await booking.save();
+
+    await ActivityLog.create({
+      user: req.user?._id,
+      username: req.user?.name || 'System',
+      action: 'Booking Restored',
+      bookingId: booking.bookingId,
+      details: `Restored booking ${booking.bookingId}`,
+      ipAddress: req.ip,
+    });
+
+    res.json(booking);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -319,7 +351,7 @@ const deleteBooking = async (req, res) => {
 
 const getBookingStats = async (req, res) => {
   try {
-    const activeBookingQuery = { isArchived: { $ne: true } };
+    const activeBookingQuery = { isArchived: { $ne: true }, isDeleted: { $ne: true } };
     const total = await Booking.countDocuments(activeBookingQuery);
     const pending = await Booking.countDocuments({ ...activeBookingQuery, status: 'Pending' });
     const assigned = await Booking.countDocuments({ ...activeBookingQuery, status: 'Assigned' });
@@ -430,5 +462,6 @@ module.exports = {
   trackBooking,
   updateBookingStatus,
   deleteBooking,
+  restoreBooking,
   getBookingStats,
 };

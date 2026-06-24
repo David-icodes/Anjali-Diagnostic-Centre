@@ -3,7 +3,7 @@ const Testimonial = require('../models/Testimonial');
 const getTestimonials = async (req, res) => {
   try {
     const { isActive } = req.query;
-    const query = {};
+    const query = { isDeleted: { $ne: true } };
 
     if (isActive !== undefined) query.isActive = isActive === 'true';
 
@@ -50,6 +50,12 @@ const deleteTestimonial = async (req, res) => {
     }
 
     testimonial.isActive = false;
+    testimonial.isDeleted = true;
+    testimonial.deletedAt = new Date();
+    testimonial.deletedBy = {
+      userId: req.user?._id || null,
+      username: req.user?.name || req.user?.username || '',
+    };
     await testimonial.save();
     res.json({ message: 'Testimonial deactivated successfully' });
   } catch (error) {

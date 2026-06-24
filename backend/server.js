@@ -20,6 +20,7 @@ const healthPackageRoutes = require('./routes/healthPackageRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const activityLogRoutes = require('./routes/activityLogRoutes');
 const userRoutes = require('./routes/userRoutes');
+const heroSlideRoutes = require('./routes/heroSlideRoutes');
 
 connectDB();
 
@@ -79,6 +80,7 @@ app.use('/api/health-packages', healthPackageRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/activity-logs', activityLogRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/hero-slides', heroSlideRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

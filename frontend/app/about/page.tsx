@@ -44,6 +44,10 @@ const principles = [
     title: 'Our Commitment',
     description: 'We focus on careful processes, respectful support, and reliable reporting for every patient visit.',
   },
+  {
+    title: 'Quality Assurance',
+    description: 'Every workflow is handled with attention to hygiene, process discipline, and reporting clarity.',
+  },
 ]
 
 const highlights = [
@@ -51,6 +55,9 @@ const highlights = [
   { icon: HeartPulse, title: 'Patient-Focused Care', text: 'A calm, service-oriented environment for every visitor.' },
   { icon: Clock3, title: 'Timely Service', text: 'Streamlined workflows that help reduce waiting and reporting delays.' },
   { icon: Award, title: 'Professional Standards', text: 'Clean presentation, organized spaces, and careful handling throughout.' },
+  { icon: Microscope, title: 'Modern Equipment', text: 'Advanced laboratory systems support efficient day-to-day diagnostics.' },
+  { icon: Users, title: 'Experienced Staff', text: 'An attentive team focused on clear communication and dependable patient support.' },
+  { icon: CheckCircle2, title: 'Patient Care Commitment', text: 'From booking to reports, the patient experience remains organized and respectful.' },
 ]
 
 const stats = [
@@ -253,7 +260,7 @@ function PrinciplesSection() {
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {principles.map((item, index) => (
             <motion.div
               key={item.title}

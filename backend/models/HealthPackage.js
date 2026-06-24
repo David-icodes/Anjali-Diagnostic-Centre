@@ -10,6 +10,12 @@ const healthPackageSchema = mongoose.Schema({
   discountPercentage: { type: Number, default: 0 },
   homeCollectionAvailable: { type: Boolean, default: true },
   isActive: { type: Boolean, default: true },
+  isDeleted: { type: Boolean, default: false, index: true },
+  deletedAt: { type: Date, default: null },
+  deletedBy: {
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    username: { type: String, default: '' },
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('HealthPackage', healthPackageSchema);

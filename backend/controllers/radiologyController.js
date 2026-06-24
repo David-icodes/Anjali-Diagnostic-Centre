@@ -4,7 +4,7 @@ const ActivityLog = require('../models/ActivityLog');
 const getRadiologyServices = async (req, res) => {
   try {
     const { isActive, search, page = 1, limit = 10 } = req.query;
-    const query = {};
+    const query = { isDeleted: { $ne: true } };
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (search) query.name = { $regex: search, $options: 'i' };
 
@@ -68,6 +68,12 @@ const deleteRadiologyService = async (req, res) => {
     const service = await RadiologyService.findById(req.params.id);
     if (!service) return res.status(404).json({ message: 'Radiology service not found' });
     service.isActive = false;
+    service.isDeleted = true;
+    service.deletedAt = new Date();
+    service.deletedBy = {
+      userId: req.user?._id || null,
+      username: req.user?.name || req.user?.username || '',
+    };
     await service.save();
     await ActivityLog.create({
       user: req.user._id,

@@ -81,8 +81,8 @@ export default function MainNavigation() {
                 <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-1.5" sizes="48px" />
               </div>
               <div>
-                <p className="text-base font-bold text-gray-900 leading-tight">{BRAND.name}</p>
-                <p className="text-[9px] text-[#0F9A88] font-semibold uppercase tracking-[0.24em] leading-tight -mt-0.5">Centre</p>
+                <p className="text-lg font-extrabold tracking-[0.01em] text-gray-900 leading-tight sm:text-xl">{BRAND.name}</p>
+                <p className="text-[10px] text-[#0F9A88] font-semibold uppercase tracking-[0.24em] leading-tight -mt-0.5">Diagnostic Centre</p>
               </div>
             </Link>
 

@@ -32,9 +32,9 @@ export const loginSchema = z.object({
 export const testSchema = z.object({
   name: z.string().min(2, 'Test name is required'),
   category: z.string().min(1, 'Category is required'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
+  description: z.string().optional(),
   originalPrice: z.coerce.number().min(1, 'Price is required'),
-  offerPrice: z.coerce.number().min(0, 'Offer price is required'),
+  offerPrice: z.coerce.number().min(0, 'Offer price must be valid').optional(),
   preparationInstructions: z.string().optional(),
   testDuration: z.string().optional(),
   isActive: z.boolean().optional(),
@@ -49,6 +49,7 @@ export const offerSchema = z.object({
   validFrom: z.string().min(1, 'Start date is required'),
   validUntil: z.string().min(1, 'End date is required'),
   isActive: z.boolean().optional(),
+  showOnHomePage: z.boolean().optional(),
 })
 
 export const testimonialSchema = z.object({

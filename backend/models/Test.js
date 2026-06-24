@@ -30,7 +30,7 @@ const testSchema = mongoose.Schema(
     },
     description: {
       type: String,
-      required: true,
+      default: '',
     },
     originalPrice: {
       type: Number,
@@ -38,7 +38,7 @@ const testSchema = mongoose.Schema(
     },
     offerPrice: {
       type: Number,
-      required: true,
+      default: 0,
     },
     preparationInstructions: {
       type: String,
@@ -55,6 +55,19 @@ const testSchema = mongoose.Schema(
     isPopular: {
       type: Boolean,
       default: false,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    deletedBy: {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+      username: { type: String, default: '' },
     },
   },
   { timestamps: true }

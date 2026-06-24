@@ -2,8 +2,8 @@ const Test = require('../models/Test');
 
 const getTests = async (req, res) => {
   try {
-    const { category, search, isActive, page = 1, limit = 12 } = req.query;
-    const query = {};
+    const { category, search, isActive, includeDeleted, page = 1, limit = 12 } = req.query;
+    const query = includeDeleted === 'true' ? {} : { isDeleted: { $ne: true } };
 
     if (category) query.category = category;
     if (isActive !== undefined) query.isActive = isActive === 'true';
@@ -44,7 +44,14 @@ const getTestById = async (req, res) => {
 
 const createTest = async (req, res) => {
   try {
-    const test = await Test.create(req.body);
+    const payload = {
+      ...req.body,
+      description: req.body.description || '',
+      offerPrice: req.body.offerPrice !== undefined && req.body.offerPrice !== ''
+        ? req.body.offerPrice
+        : req.body.originalPrice,
+    };
+    const test = await Test.create(payload);
     res.status(201).json(test);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -53,9 +60,16 @@ const createTest = async (req, res) => {
 
 const updateTest = async (req, res) => {
   try {
+    const payload = {
+      ...req.body,
+      description: req.body.description ?? '',
+    };
+    if (payload.offerPrice === undefined || payload.offerPrice === '') {
+      payload.offerPrice = payload.originalPrice;
+    }
     const updatedTest = await Test.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      payload,
       { new: true, runValidators: true }
     );
 
@@ -78,8 +92,14 @@ const deleteTest = async (req, res) => {
     }
 
     test.isActive = false;
+    test.isDeleted = true;
+    test.deletedAt = new Date();
+    test.deletedBy = {
+      userId: req.user?._id || null,
+      username: req.user?.name || req.user?.username || '',
+    };
     await test.save();
-    res.json({ message: 'Test deactivated successfully', test });
+    res.json({ message: 'Test deleted successfully', test });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -91,6 +111,10 @@ const toggleTestStatus = async (req, res) => {
 
     if (!test) {
       return res.status(404).json({ message: 'Test not found' });
+    }
+
+    if (test.isDeleted) {
+      return res.status(400).json({ message: 'Deleted tests cannot be activated. Restore the test first.' });
     }
 
     test.isActive = !test.isActive;
@@ -119,6 +143,25 @@ const getPopularTests = async (req, res) => {
   }
 };
 
+const restoreTest = async (req, res) => {
+  try {
+    const test = await Test.findById(req.params.id);
+
+    if (!test) {
+      return res.status(404).json({ message: 'Test not found' });
+    }
+
+    test.isDeleted = false;
+    test.deletedAt = null;
+    test.deletedBy = { userId: null, username: '' };
+    await test.save();
+
+    res.json(test);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 module.exports = {
   getTests,
   getTestById,
@@ -128,4 +171,5 @@ module.exports = {
   toggleTestStatus,
   getCategories,
   getPopularTests,
+  restoreTest,
 };

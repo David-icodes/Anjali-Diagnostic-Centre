@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import GlobalSearch from './GlobalSearch'
 import { BRAND, CENTRE_IMAGES } from '@/lib/site'
+import api from '@/lib/api'
 
 const stats = [
   { label: 'Happy Patients', value: '50000+', icon: Users },
@@ -46,6 +47,35 @@ function AnimatedCounter({ value }: { value: string }) {
 }
 
 export default function HeroSection() {
+  const fallbackSlides = [
+    { _id: 'fallback-centre', image: CENTRE_IMAGES.heroCentre, title: 'Anjali Diagnostics centre' },
+    { _id: 'fallback-lab', image: CENTRE_IMAGES.heroLab, title: 'Anjali Diagnostics laboratory' },
+  ]
+  const [slides, setSlides] = useState<{ _id: string; image: string; title?: string }[]>(fallbackSlides)
+  const [activeSlide, setActiveSlide] = useState(0)
+
+  useEffect(() => {
+    const loadSlides = async () => {
+      try {
+        const { data } = await api.get('/hero-slides', { params: { isActive: true } })
+        if (Array.isArray(data) && data.length > 0) {
+          setSlides(data)
+        }
+      } catch {}
+    }
+
+    loadSlides()
+  }, [])
+
+  useEffect(() => {
+    if (slides.length <= 1) return
+    const timer = window.setInterval(() => {
+      setActiveSlide((prev) => (prev + 1) % slides.length)
+    }, 4500)
+
+    return () => window.clearInterval(timer)
+  }, [slides.length])
+
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-white via-[#F8FBFC] to-[#EEF8F5]">
       <div className="pointer-events-none absolute right-0 top-0 h-[520px] w-[520px] translate-x-1/3 -translate-y-1/3 rounded-full bg-[#1BAE9A]/10 blur-[120px]" />
@@ -114,29 +144,56 @@ export default function HeroSection() {
             className="relative"
           >
             <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white p-3 shadow-[0_30px_80px_rgba(16,185,129,0.16)]">
-              <div className="relative aspect-[5/4] overflow-hidden rounded-[1.5rem]">
-                <Image
-                  src={CENTRE_IMAGES.heroCentre}
-                  alt="Anjali Diagnostics centre reception"
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 42vw"
-                />
+              <div className="relative aspect-[5/4] overflow-hidden rounded-[1.5rem] bg-slate-100">
+                {slides.map((slide, index) => (
+                  <div
+                    key={slide._id}
+                    className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                      index === activeSlide ? 'opacity-100' : 'opacity-0'
+                    }`}
+                  >
+                    <Image
+                      src={slide.image}
+                      alt={slide.title || 'Anjali Diagnostics hero slide'}
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                      sizes="(max-width: 1024px) 100vw, 42vw"
+                    />
+                  </div>
+                ))}
+                {slides.length > 1 ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length)}
+                      className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition hover:bg-white"
+                      aria-label="Previous hero slide"
+                    >
+                      <span className="text-xl leading-none">‹</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveSlide((prev) => (prev + 1) % slides.length)}
+                      className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition hover:bg-white"
+                      aria-label="Next hero slide"
+                    >
+                      <span className="text-xl leading-none">›</span>
+                    </button>
+                    <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-white/70 px-3 py-2 backdrop-blur-sm">
+                      {slides.map((slide, index) => (
+                        <button
+                          key={slide._id}
+                          type="button"
+                          onClick={() => setActiveSlide(index)}
+                          className={`h-2.5 rounded-full transition-all ${index === activeSlide ? 'w-7 bg-brand-600' : 'w-2.5 bg-gray-300'}`}
+                          aria-label={`Go to hero slide ${index + 1}`}
+                        />
+                      ))}
+                    </div>
+                  </>
+                ) : null}
               </div>
-            </div>
-
-            <div className="absolute -bottom-6 left-4 w-[42%] max-w-[220px] overflow-hidden rounded-[1.5rem] border border-white/80 bg-white p-2 shadow-2xl sm:left-8">
-              <div className="relative aspect-[4/4] overflow-hidden rounded-[1.1rem]">
-                <Image
-                  src={CENTRE_IMAGES.heroLab}
-                  alt="Anjali Diagnostics laboratory equipment"
-                  fill
-                  className="object-cover"
-                  sizes="220px"
-                />
-              </div>
-              <p className="px-2 pb-1 pt-3 text-xs font-semibold text-gray-700 sm:text-sm">Modern in-house laboratory</p>
             </div>
           </motion.div>
         </div>

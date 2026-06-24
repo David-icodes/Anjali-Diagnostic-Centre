@@ -4,7 +4,7 @@ const ActivityLog = require('../models/ActivityLog');
 const getHealthPackages = async (req, res) => {
   try {
     const { isActive, search, page = 1, limit = 10 } = req.query;
-    const query = {};
+    const query = { isDeleted: { $ne: true } };
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (search) query.name = { $regex: search, $options: 'i' };
 
@@ -68,6 +68,12 @@ const deleteHealthPackage = async (req, res) => {
     const pkg = await HealthPackage.findById(req.params.id);
     if (!pkg) return res.status(404).json({ message: 'Health package not found' });
     pkg.isActive = false;
+    pkg.isDeleted = true;
+    pkg.deletedAt = new Date();
+    pkg.deletedBy = {
+      userId: req.user?._id || null,
+      username: req.user?.name || req.user?.username || '',
+    };
     await pkg.save();
     await ActivityLog.create({
       user: req.user._id,

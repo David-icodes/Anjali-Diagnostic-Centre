@@ -1,13 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Search, Eye, Trash2, ChevronLeft, ChevronRight, Clock, User, Phone, Mail, MapPin, Calendar, Activity, FileText, CheckCircle2 } from 'lucide-react'
+import { Search, Eye, Trash2, ChevronLeft, ChevronRight, Clock, User, Phone, Mail, MapPin, Calendar, Activity, FileText, CheckCircle2, Copy, Building2, MapPinned } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatDate } from '@/lib/utils'
 import api from '@/lib/api'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import {
@@ -72,7 +70,7 @@ export default function BookingsPage() {
       const parsed = JSON.parse(rawUser)
       setCurrentUserRole(parsed.role || '')
     } catch {}
-  }, []) 
+  }, [])
 
   const fetchBookings = useCallback(async () => {
     try {
@@ -82,11 +80,13 @@ export default function BookingsPage() {
       if (statusFilter) params.status = statusFilter
       if (serviceFilter) params.serviceType = serviceFilter
       const res = await api.get('/bookings', { params })
-      const nextBookings = (res.data.bookings || res.data || [])
-      setBookings(nextBookings)
+      setBookings(res.data.bookings || res.data || [])
       setTotalPages(res.data.pages || 1)
-    } catch { toast.error('Failed to load bookings') }
-    finally { setLoading(false) }
+    } catch {
+      toast.error('Failed to load bookings')
+    } finally {
+      setLoading(false)
+    }
   }, [page, search, statusFilter, serviceFilter])
 
   useEffect(() => {
@@ -104,7 +104,9 @@ export default function BookingsPage() {
     }
   }, [fetchBookings])
 
-  useEffect(() => { fetchBookings() }, [fetchBookings])
+  useEffect(() => {
+    fetchBookings()
+  }, [fetchBookings])
 
   const notifyAdminRefresh = useCallback(() => {
     if (typeof window === 'undefined') return
@@ -141,7 +143,7 @@ export default function BookingsPage() {
     try {
       setDeletingBooking(true)
       await api.delete(`/bookings/${deleteConfirm}`)
-      toast.success('Booking deleted permanently')
+      toast.success('Booking deleted successfully')
       setDeleteConfirm(null)
       setViewBooking((prev) => prev?._id === deleteConfirm ? null : prev)
       fetchBookings()
@@ -163,12 +165,13 @@ export default function BookingsPage() {
     { key: 'sampleCollectedAt', header: 'Collection Date', render: (b) => b.sampleCollectedAt ? formatDate(b.sampleCollectedAt) : 'N/A' },
     { key: 'createdAt', header: 'Created Date', render: (b) => formatDate(b.createdAt) },
     {
-      key: '_id', header: 'Actions',
+      key: '_id',
+      header: 'Actions',
       render: (b) => (
         <div className="flex items-center gap-2">
-          <button onClick={() => setViewBooking(b)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-brand-600 transition-colors"><Eye size={16} /></button>
+          <button onClick={() => setViewBooking(b)} className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-brand-600"><Eye size={16} /></button>
           {currentUserRole === 'admin' || currentUserRole === 'superadmin' ? (
-            <button onClick={() => setDeleteConfirm(b._id)} className="p-1.5 rounded-lg hover:bg-red-50 text-gray-500 hover:text-red-600 transition-colors"><Trash2 size={16} /></button>
+            <button onClick={() => setDeleteConfirm(b._id)} className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600"><Trash2 size={16} /></button>
           ) : null}
         </div>
       ),
@@ -184,44 +187,52 @@ export default function BookingsPage() {
 
       <Card className="border-gray-200 shadow-sm">
         <CardContent className="flex flex-col gap-4 p-5 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input type="text" placeholder="Search by booking ID, patient name, or mobile..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="w-full pl-10 pr-4 h-10 rounded-lg border border-input bg-background text-sm" />
-        </div>
-        <Select value={serviceFilter} onValueChange={(v) => { setServiceFilter(v); setPage(1) }}>
-          <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="All Types" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Types</SelectItem>
-            <SelectItem value="Laboratory">Laboratory</SelectItem>
-            <SelectItem value="Radiology">Radiology</SelectItem>
-            <SelectItem value="Health Package">Health Package</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
-          <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="All Statuses" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="">All Statuses</SelectItem>
-            {BOOKING_STATUSES.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
-          </SelectContent>
-        </Select>
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by booking ID, patient name, or mobile..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+              className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400"
+            />
+          </div>
+          <Select value={serviceFilter} onValueChange={(v) => { setServiceFilter(v); setPage(1) }}>
+            <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="All Types" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="Laboratory">Laboratory</SelectItem>
+              <SelectItem value="Radiology">Radiology</SelectItem>
+              <SelectItem value="Health Package">Health Package</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1) }}>
+            <SelectTrigger className="w-full sm:w-44"><SelectValue placeholder="All Statuses" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Statuses</SelectItem>
+              {BOOKING_STATUSES.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+            </SelectContent>
+          </Select>
         </CardContent>
       </Card>
 
-      <Card><CardContent className="p-0">
-        <DataTable columns={columns} data={bookings} loading={loading} searchable={false} />
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t">
-            <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}><ChevronLeft className="w-4 h-4 mr-1" /> Prev</Button>
-              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next <ChevronRight className="w-4 h-4 ml-1" /></Button>
+      <Card>
+        <CardContent className="p-0">
+          <DataTable columns={columns} data={bookings} loading={loading} searchable={false} />
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t px-6 py-4">
+              <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}><ChevronLeft className="mr-1 h-4 w-4" /> Prev</Button>
+                <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next <ChevronRight className="ml-1 h-4 w-4" /></Button>
+              </div>
             </div>
-          </div>
-        )}
-      </CardContent></Card>
+          )}
+        </CardContent>
+      </Card>
 
       <Dialog open={!!viewBooking} onOpenChange={() => setViewBooking(null)}>
-        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto border border-gray-200 bg-white shadow-2xl">
           {viewBooking && (
             <>
               <DialogHeader className="border-b border-gray-100 pb-4">
@@ -231,7 +242,7 @@ export default function BookingsPage() {
                 </DialogTitle>
                 <DialogDescription className="text-sm text-gray-500">
                   {viewBooking.serviceType} - {viewBooking.serviceName}
-                  {viewBooking.homeCollection && <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">Home Collection</span>}
+                  {viewBooking.homeCollection && <span className="ml-2 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700">Home Collection</span>}
                 </DialogDescription>
               </DialogHeader>
 
@@ -243,7 +254,6 @@ export default function BookingsPage() {
                     <InfoRow icon={Calendar} label="Date of Birth" value={viewBooking.dob ? formatDate(viewBooking.dob) : 'N/A'} />
                     <InfoRow icon={Phone} label="Phone Number" value={viewBooking.mobileNumber || 'N/A'} />
                     <InfoRow icon={Mail} label="Email Address" value={viewBooking.email || 'N/A'} />
-                    <InfoRow icon={MapPin} label="Address" value={viewBooking.address || 'N/A'} multiline />
                   </div>
                 </div>
                 <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
@@ -257,6 +267,41 @@ export default function BookingsPage() {
                     <InfoRow icon={FileText} label="Created On" value={formatDate(viewBooking.createdAt)} />
                     <InfoRow icon={CheckCircle2} label="Home Collection" value={viewBooking.homeCollection ? 'Yes' : 'No'} />
                   </div>
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50/90 to-sky-50/80 p-5 shadow-sm">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-emerald-800">
+                      <MapPinned className="h-4 w-4" />
+                      Collection Address
+                    </h3>
+                    <p className="mt-3 text-base font-semibold text-gray-900">{viewBooking.patientName || 'N/A'}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-gray-700">{viewBooking.address || 'Address not provided'}</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="gap-2 rounded-full border-emerald-200 bg-white/90 text-emerald-700"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(viewBooking.address || '')
+                        toast.success('Address copied')
+                      } catch {
+                        toast.error('Failed to copy address')
+                      }
+                    }}
+                  >
+                    <Copy className="h-4 w-4" />
+                    Copy Address
+                  </Button>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <MiniDetail icon={Phone} label="Phone" value={viewBooking.mobileNumber || 'N/A'} />
+                  <MiniDetail icon={Mail} label="Email" value={viewBooking.email || 'N/A'} />
+                  <MiniDetail icon={Building2} label="City" value={extractAddressPart(viewBooking.address, 'city')} />
+                  <MiniDetail icon={MapPin} label="Pincode" value={extractAddressPart(viewBooking.address, 'pincode')} />
                 </div>
               </div>
 
@@ -287,7 +332,7 @@ export default function BookingsPage() {
                       const isLatest = i === arr.length - 1
                       return (
                         <div key={`${entry.status}-${entry.updatedAt}-${i}`} className="relative flex gap-4 pb-4 last:pb-0">
-                          {i < arr.length - 1 && <div className="absolute left-[19px] top-10 bottom-0 w-px bg-gray-200" />}
+                          {i < arr.length - 1 && <div className="absolute bottom-0 left-[19px] top-10 w-px bg-gray-200" />}
                           <div className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border ${isLatest ? 'border-emerald-200 bg-emerald-100 text-emerald-600' : 'border-gray-200 bg-gray-100 text-gray-500'}`}>
                             {isLatest ? <CheckCircle2 className="h-5 w-5" /> : <Clock className="h-4 w-4" />}
                           </div>
@@ -314,12 +359,12 @@ export default function BookingsPage() {
       <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Permanently Delete Booking</DialogTitle>
-            <DialogDescription>Are you sure you want to permanently delete this booking? This action cannot be undone.</DialogDescription>
+            <DialogTitle>Delete Booking</DialogTitle>
+            <DialogDescription>Are you sure you want to delete this booking? It will be removed from active listings but preserved securely in the database.</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm(null)} disabled={deletingBooking}>Cancel</Button>
-            <Button onClick={deleteBooking} disabled={deletingBooking} className="bg-red-600 text-white hover:bg-red-700">{deletingBooking ? 'Deleting...' : 'Delete Permanently'}</Button>
+            <Button onClick={deleteBooking} disabled={deletingBooking} className="bg-red-600 text-white hover:bg-red-700">{deletingBooking ? 'Deleting...' : 'Delete Booking'}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -331,22 +376,51 @@ function InfoRow({
   icon: Icon,
   label,
   value,
-  multiline = false,
 }: {
   icon: typeof User
   label: string
   value: string
-  multiline?: boolean
 }) {
   return (
-    <div className={`flex gap-3 rounded-xl border border-gray-100 bg-gray-50/80 p-3 ${multiline ? 'items-start' : 'items-center'}`}>
+    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/80 p-3">
       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-brand-600 shadow-sm">
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
         <p className="text-xs font-medium uppercase tracking-[0.16em] text-gray-400">{label}</p>
-        <p className="mt-1 text-sm font-semibold text-gray-900 break-words">{value}</p>
+        <p className="mt-1 break-words text-sm font-semibold text-gray-900">{value}</p>
       </div>
     </div>
   )
+}
+
+function MiniDetail({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof User
+  label: string
+  value: string
+}) {
+  return (
+    <div className="rounded-xl border border-white/70 bg-white/80 p-3">
+      <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.16em] text-gray-400">
+        <Icon className="h-3.5 w-3.5 text-emerald-600" />
+        {label}
+      </div>
+      <p className="mt-2 break-words text-sm font-semibold text-gray-900">{value}</p>
+    </div>
+  )
+}
+
+function extractAddressPart(address?: string, type?: 'city' | 'pincode') {
+  if (!address) return 'Not provided'
+  if (type === 'pincode') {
+    const pin = address.match(/\b\d{6}\b/)
+    return pin?.[0] || 'Not provided'
+  }
+
+  const parts = address.split(',').map((part) => part.trim()).filter(Boolean)
+  return parts.length >= 2 ? parts[parts.length - 2] : 'Not provided'
 }

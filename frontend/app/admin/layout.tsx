@@ -12,6 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isChecking, setIsChecking] = useState(true)
+  const [isDesktop, setIsDesktop] = useState(false)
 
   const isLoginPage = pathname === '/admin/login'
 
@@ -33,6 +34,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       setIsChecking(false)
     }
   }, [isLoginPage, router])
+
+  useEffect(() => {
+    const syncViewport = () => {
+      const desktop = window.innerWidth >= 1024
+      setIsDesktop(desktop)
+      if (desktop) {
+        setIsSidebarOpen(false)
+      }
+    }
+
+    syncViewport()
+    window.addEventListener('resize', syncViewport)
+    return () => window.removeEventListener('resize', syncViewport)
+  }, [])
 
   if (isLoginPage) return <>{children}</>
 
@@ -57,7 +72,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <AdminHeader onMenuToggle={() => setIsSidebarOpen(true)} />
       <main
         className="pt-14 transition-all duration-250"
-        style={{ paddingLeft: `${sidebarWidth}px` }}
+        style={{ paddingLeft: isDesktop ? `${sidebarWidth}px` : '0px' }}
       >
         <div className="p-4 sm:p-5">
           {children}

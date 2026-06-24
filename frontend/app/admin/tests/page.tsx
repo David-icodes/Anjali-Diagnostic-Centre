@@ -102,6 +102,9 @@ export default function TestsPage() {
     defaultValues: {
       isActive: true,
       isPopular: false,
+      description: '',
+      preparationInstructions: '',
+      testDuration: '',
     },
   })
 
@@ -147,7 +150,7 @@ export default function TestsPage() {
     reset({
       name: test.name,
       category: test.category,
-      description: test.description,
+      description: test.description || '',
       originalPrice: test.originalPrice,
       offerPrice: test.offerPrice,
       preparationInstructions: test.preparationInstructions || '',
@@ -161,11 +164,17 @@ export default function TestsPage() {
   const onSubmit = async (data: TestFormData) => {
     setSubmitting(true)
     try {
+      const payload = {
+        ...data,
+        description: data.description || '',
+        offerPrice: data.offerPrice ?? data.originalPrice,
+      }
+
       if (editingTest) {
-        await api.put(`/tests/${editingTest._id}`, data)
+        await api.put(`/tests/${editingTest._id}`, payload)
         toast.success('Test updated successfully')
       } else {
-        await api.post('/tests', data)
+        await api.post('/tests', payload)
         toast.success('Test added successfully')
       }
       setModalOpen(false)
@@ -204,14 +213,14 @@ export default function TestsPage() {
     { key: 'category', header: 'Category' },
     {
       key: 'originalPrice',
-      header: 'Original Price',
+      header: 'Price',
       render: (test) => formatPrice(test.originalPrice),
     },
     {
       key: 'offerPrice',
       header: 'Offer Price',
       render: (test) => (
-        <span className="text-emerald-600 font-medium">{formatPrice(test.offerPrice)}</span>
+        <span className="font-medium text-emerald-600">{formatPrice(test.offerPrice)}</span>
       ),
     },
     {
@@ -224,13 +233,13 @@ export default function TestsPage() {
       header: 'Actions',
       render: (test) => (
         <div className="flex items-center gap-2">
-          <button onClick={() => openEditModal(test)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-brand-600 transition-colors">
+          <button onClick={() => openEditModal(test)} className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-brand-600">
             <Pencil size={16} />
           </button>
-          <button onClick={() => toggleActive(test)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-amber-600 transition-colors">
+          <button onClick={() => toggleActive(test)} className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-amber-600">
             {test.isActive ? <PowerOff size={16} /> : <Power size={16} />}
           </button>
-          <button onClick={() => setDeleteConfirm(test._id)} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-500 hover:text-red-600 transition-colors">
+          <button onClick={() => setDeleteConfirm(test._id)} className="rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-red-600">
             <Trash2 size={16} />
           </button>
         </div>
@@ -240,26 +249,26 @@ export default function TestsPage() {
 
   return (
     <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6">
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Test Management</h1>
-          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Manage your diagnostic tests</p>
+          <h1 className="text-2xl font-bold text-gray-900">Test Management</h1>
+          <p className="mt-1 text-sm text-gray-500">Create tests with only the essential required fields and manage visibility cleanly.</p>
         </div>
-        <Button onClick={openAddModal} className="bg-gradient-to-r from-brand-500 to-brand-400 hover:from-brand-600 hover:to-brand-500 text-white shadow-lg shadow-brand-500/25">
-          <Plus className="w-4 h-4 mr-2" />
+        <Button onClick={openAddModal} className="bg-gradient-to-r from-brand-500 to-brand-400 text-white shadow-lg shadow-brand-500/25 hover:from-brand-600 hover:to-brand-500">
+          <Plus className="mr-2 h-4 w-4" />
           Add Test
         </Button>
       </motion.div>
 
-      <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4">
+      <motion.div variants={itemVariants} className="flex flex-col gap-4 sm:flex-row">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
             type="text"
             placeholder="Search tests..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-            className="w-full pl-10 pr-4 h-10 rounded-lg border border-input bg-background text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-4 text-sm text-gray-900 placeholder:text-gray-400"
           />
         </div>
         <Select value={categoryFilter} onValueChange={(v) => { setCategoryFilter(v); setPage(1) }}>
@@ -280,7 +289,7 @@ export default function TestsPage() {
           <CardContent className="p-0">
             <DataTable columns={columns} data={tests} loading={loading} />
             {totalPages > 1 && (
-              <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4">
                 <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
                 <div className="flex gap-2">
                   <Button
@@ -289,7 +298,7 @@ export default function TestsPage() {
                     disabled={page <= 1}
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                   >
-                    <ChevronLeft className="w-4 h-4 mr-1" /> Prev
+                    <ChevronLeft className="mr-1 h-4 w-4" /> Prev
                   </Button>
                   <Button
                     variant="outline"
@@ -297,7 +306,7 @@ export default function TestsPage() {
                     disabled={page >= totalPages}
                     onClick={() => setPage((p) => p + 1)}
                   >
-                    Next <ChevronRight className="w-4 h-4 ml-1" />
+                    Next <ChevronRight className="ml-1 h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -307,25 +316,22 @@ export default function TestsPage() {
       </motion.div>
 
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editingTest ? 'Edit Test' : 'Add Test'}</DialogTitle>
             <DialogDescription>
-              {editingTest ? 'Update the test details below.' : 'Fill in the details to add a new test.'}
+              Required fields: Test Name, Category, and Price. All other fields are optional.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label>Test Name</Label>
                 <Input {...register('name')} error={errors.name?.message} placeholder="e.g. Complete Blood Count" />
               </div>
               <div>
                 <Label>Category</Label>
-                <Select
-                  value={watch('category')}
-                  onValueChange={(v) => setValue('category', v)}
-                >
+                <Select value={watch('category')} onValueChange={(value) => setValue('category', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
@@ -341,21 +347,21 @@ export default function TestsPage() {
 
             <div>
               <Label>Description</Label>
-              <Textarea {...register('description')} error={errors.description?.message} rows={3} placeholder="Describe the test..." />
+              <Textarea {...register('description')} rows={3} placeholder="Describe the test (optional)..." />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <Label>Original Price (₹)</Label>
+                <Label>Original Price (Rs.)</Label>
                 <Input type="number" {...register('originalPrice')} error={errors.originalPrice?.message} placeholder="0" />
               </div>
               <div>
-                <Label>Offer Price (₹)</Label>
+                <Label>Offer Price (Optional)</Label>
                 <Input type="number" {...register('offerPrice')} error={errors.offerPrice?.message} placeholder="0" />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <Label>Preparation Instructions</Label>
                 <Textarea {...register('preparationInstructions')} rows={2} placeholder="Any preparation instructions..." />
@@ -368,19 +374,11 @@ export default function TestsPage() {
 
             <div className="flex items-center gap-6">
               <div className="flex items-center gap-2">
-                <Switch
-                  checked={watchIsActive}
-                  onCheckedChange={(v) => setValue('isActive', v)}
-                  id="isActive"
-                />
+                <Switch checked={watchIsActive} onCheckedChange={(value) => setValue('isActive', value)} id="isActive" />
                 <Label htmlFor="isActive">Active</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Switch
-                  checked={watchIsPopular}
-                  onCheckedChange={(v) => setValue('isPopular', v)}
-                  id="isPopular"
-                />
+                <Switch checked={watchIsPopular} onCheckedChange={(value) => setValue('isPopular', value)} id="isPopular" />
                 <Label htmlFor="isPopular">Popular</Label>
               </div>
             </div>
@@ -400,7 +398,7 @@ export default function TestsPage() {
           <DialogHeader>
             <DialogTitle>Delete Test</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this test? This action cannot be undone.
+              Are you sure you want to delete this test? It will be removed from active listings but kept safely in the database.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

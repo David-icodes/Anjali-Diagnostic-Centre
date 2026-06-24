@@ -41,6 +41,23 @@ const offerSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    showOnHomePage: {
+      type: Boolean,
+      default: false,
+    },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    deletedBy: {
+      userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+      username: { type: String, default: '' },
+    },
   },
   { timestamps: true }
 );

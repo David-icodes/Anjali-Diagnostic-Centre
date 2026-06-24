@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
-import { ChevronLeft, ChevronRight, Tag, Clock } from 'lucide-react'
-import { cn, formatDate } from '@/lib/utils'
+import { Tag, Clock } from 'lucide-react'
+import { formatDate } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -22,14 +22,13 @@ interface Offer {
 export default function OffersSection() {
   const [offers, setOffers] = useState<Offer[]>([])
   const [loading, setLoading] = useState(true)
-  const [currentIndex, setCurrentIndex] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true })
 
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const { data } = await api.get('/offers', { params: { isActive: true } })
+        const { data } = await api.get('/offers', { params: { isActive: true, showOnHomePage: true } })
         setOffers(Array.isArray(data) ? data : data?.offers || data?.data || [])
       } catch {
         setOffers([])
@@ -37,141 +36,84 @@ export default function OffersSection() {
         setLoading(false)
       }
     }
+
     fetchOffers()
   }, [])
 
-  const next = () => {
-    setCurrentIndex((prev) => (prev + 1) % Math.max(offers.length, 1))
+  if (!loading && offers.length === 0) {
+    return null
   }
-
-  const prev = () => {
-    setCurrentIndex((prev) => (prev - 1 + Math.max(offers.length, 1)) % Math.max(offers.length, 1))
-  }
-
-  useEffect(() => {
-    if (offers.length <= 1) return
-    const timer = setInterval(next, 5000)
-    return () => clearInterval(timer)
-  }, [offers.length])
 
   return (
-    <section className="py-24 px-4 relative overflow-hidden" id="offers">
+    <section className="relative overflow-hidden px-4 py-20" id="offers">
       <div className="absolute inset-0 bg-gradient-to-b from-brand-50/30 to-background pointer-events-none" />
 
-      <div ref={sectionRef} className="max-w-7xl mx-auto relative z-10">
+      <div ref={sectionRef} className="relative z-10 mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-16 text-center"
         >
-          <span className="inline-block px-4 py-2 rounded-full bg-amber-100 text-amber-700 text-sm font-medium mb-4">
+          <span className="mb-4 inline-block rounded-full bg-amber-100 px-4 py-2 text-sm font-medium text-amber-700">
             Special Offers
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Exclusive{' '}
-            <span className="text-gradient">Discounts</span>
+          <h2 className="mb-4 text-4xl font-bold md:text-5xl">
+            Exclusive <span className="text-gradient">Discounts</span>
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Save big on your health checkups with our limited-time offers
+          <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+            Save on health checkups with active Anjali Diagnostics offers shown directly from the admin panel.
           </p>
         </motion.div>
 
         {loading ? (
-          <div className="max-w-4xl mx-auto">
-            <Skeleton className="h-64 rounded-2xl" />
+          <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3].map((item) => <Skeleton key={item} className="h-80 rounded-3xl" />)}
           </div>
-        ) : offers.length === 0 ? null : (
-          <div className="relative max-w-4xl mx-auto">
-            <div className="overflow-hidden rounded-2xl">
+        ) : (
+          <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
+            {offers.map((offer, index) => (
               <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.5, ease: 'easeInOut' }}
+                key={offer._id}
+                initial={{ opacity: 0, y: 24 }}
+                animate={isInView ? { opacity: 1, y: 0 } : {}}
+                transition={{ duration: 0.45, delay: index * 0.06 }}
+                className="overflow-hidden rounded-[2rem] border border-white/70 bg-white shadow-[0_22px_48px_rgba(15,118,110,0.09)]"
               >
-                <div className="relative bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl overflow-hidden">
-                  {offers[currentIndex]?.image && (
-                    <div className="absolute inset-0">
-                      <img
-                        src={offers[currentIndex].image}
-                        alt=""
-                        className="w-full h-full object-cover opacity-20"
-                      />
+                <div className="relative h-52 overflow-hidden bg-gradient-to-br from-brand-50 to-emerald-50">
+                  {offer.image ? (
+                    <img src={offer.image} alt={offer.title} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full items-center justify-center text-brand-300">
+                      <Tag className="h-14 w-14" />
                     </div>
                   )}
-                  <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
-                    <div className="flex-1 text-white">
-                      <div className="flex items-center gap-3 mb-4">
-                        <Badge variant="warning" className="text-base px-4 py-1">
-                          <Tag className="w-4 h-4 mr-1" />
-                          {offers[currentIndex].discountPercentage}% OFF
-                        </Badge>
-                      </div>
-                      <h3 className="text-2xl md:text-3xl font-bold mb-3">
-                        {offers[currentIndex].title}
-                      </h3>
-                      <p className="text-white/80 mb-4 max-w-lg">
-                        {offers[currentIndex].description}
-                      </p>
-                      {offers[currentIndex].validUntil && (
-                        <div className="flex items-center gap-2 text-white/60 text-sm">
-                          <Clock className="w-4 h-4" />
-                          Valid till: {formatDate(offers[currentIndex].validUntil)}
-                        </div>
-                      )}
-                      {offers[currentIndex].couponCode && (
-                        <div className="mt-4 inline-block px-4 py-2 rounded-lg bg-white/10 backdrop-blur border border-white/20">
-                          <span className="text-sm font-mono">Code: </span>
-                          <span className="font-bold tracking-wider">
-                            {offers[currentIndex].couponCode}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <Button
-                      variant="secondary"
-                      size="lg"
-                      className="shrink-0 whitespace-nowrap"
-                    >
-                      Claim Offer
-                    </Button>
+                  <div className="absolute left-4 top-4">
+                    <Badge variant="warning" className="px-3 py-1 text-sm">
+                      {offer.discountPercentage}% OFF
+                    </Badge>
                   </div>
                 </div>
-              </motion.div>
-            </div>
-
-            {offers.length > 1 && (
-              <div className="flex items-center justify-center gap-4 mt-6">
-                <button
-                  onClick={prev}
-                  className="p-2 rounded-full border hover:bg-brand-50 transition-colors"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <div className="flex gap-2">
-                  {offers.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setCurrentIndex(i)}
-                      className={cn(
-                        'w-2.5 h-2.5 rounded-full transition-all duration-300',
-                        i === currentIndex
-                          ? 'bg-brand-500 w-8'
-                          : 'bg-brand-200 hover:bg-brand-300'
-                      )}
-                    />
-                  ))}
+                <div className="space-y-4 p-6">
+                  <div>
+                    <h3 className="text-xl font-semibold text-gray-900">{offer.title}</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-gray-600">{offer.description}</p>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Clock className="h-4 w-4 text-brand-500" />
+                    Valid till {formatDate(offer.validUntil)}
+                  </div>
+                  {offer.couponCode ? (
+                    <div className="rounded-2xl border border-brand-100 bg-brand-50/70 px-4 py-3 text-sm text-brand-700">
+                      Coupon Code: <span className="font-semibold tracking-wide">{offer.couponCode}</span>
+                    </div>
+                  ) : null}
+                  <Button className="w-full rounded-full bg-gradient-to-r from-brand-600 to-emerald-500 text-white shadow-sm hover:from-brand-700 hover:to-emerald-600">
+                    Claim Offer
+                  </Button>
                 </div>
-                <button
-                  onClick={next}
-                  className="p-2 rounded-full border hover:bg-brand-50 transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
+              </motion.div>
+            ))}
           </div>
         )}
       </div>

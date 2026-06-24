@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  LayoutDashboard, CalendarCheck, Settings, Users, ChevronLeft, ChevronRight, LogOut, Radio, Package, FileText, Activity, Syringe,
+  LayoutDashboard, CalendarCheck, Settings, Users, ChevronLeft, ChevronRight, LogOut, Radio, Package, FileText, Activity, Syringe, Images, BadgePercent,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
@@ -31,6 +31,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/admin/users', label: 'Users', icon: Users },
       { href: '/admin/bookings', label: 'Bookings', icon: CalendarCheck },
+      { href: '/admin/offers', label: 'Offers', icon: BadgePercent },
     ],
   },
   {
@@ -46,6 +47,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: '/admin/reports', label: 'Reports', icon: FileText },
       { href: '/admin/activity-logs', label: 'Activity Logs', icon: Activity },
+      { href: '/admin/hero-slides', label: 'Hero Slider', icon: Images },
     ],
   },
   {
@@ -85,8 +87,8 @@ export default function AdminSidebar({ isOpen, onClose, collapsed, onCollapse }:
         animate={{ width: collapsed ? 72 : 256 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
         className={cn(
-          'fixed left-0 top-0 h-screen z-40 flex flex-col bg-white border-r border-gray-200 overflow-hidden',
-          isOpen !== undefined && 'lg:translate-x-0'
+          'fixed left-0 top-0 z-40 flex h-screen flex-col overflow-hidden border-r border-gray-200 bg-white transition-transform duration-300',
+          isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
       >
         <div className="flex items-center gap-3 px-4 h-14 border-b border-gray-100 shrink-0 bg-gradient-to-r from-brand-600 to-brand-500">

@@ -9,8 +9,9 @@ const {
   toggleTestStatus,
   getCategories,
   getPopularTests,
+  restoreTest,
 } = require('../controllers/testController');
-const { protect, admin } = require('../middleware/auth');
+const { protect, admin, superAdmin } = require('../middleware/auth');
 
 router.get('/', getTests);
 router.get('/categories', getCategories);
@@ -20,5 +21,6 @@ router.post('/', protect, admin, createTest);
 router.put('/:id', protect, admin, updateTest);
 router.delete('/:id', protect, admin, deleteTest);
 router.patch('/:id/toggle', protect, admin, toggleTestStatus);
+router.put('/:id/restore', protect, superAdmin, restoreTest);
 
 module.exports = router;

@@ -30,6 +30,7 @@ interface Offer {
   validFrom: string
   validUntil: string
   isActive: boolean
+  showOnHomePage: boolean
   createdAt: string
 }
 
@@ -53,6 +54,7 @@ export default function OffersPage() {
       validFrom: '',
       validUntil: '',
       isActive: true,
+      showOnHomePage: false,
     },
   })
 
@@ -74,7 +76,7 @@ export default function OffersPage() {
 
   const openAddModal = () => {
     setEditingOffer(null)
-    form.reset({ title: '', description: '', discountPercentage: 0, couponCode: '', validFrom: '', validUntil: '', isActive: true })
+    form.reset({ title: '', description: '', discountPercentage: 0, couponCode: '', validFrom: '', validUntil: '', isActive: true, showOnHomePage: false })
     setImage(null)
     setModalOpen(true)
   }
@@ -89,6 +91,7 @@ export default function OffersPage() {
       validFrom: new Date(offer.validFrom).toISOString().split('T')[0],
       validUntil: new Date(offer.validUntil).toISOString().split('T')[0],
       isActive: offer.isActive,
+      showOnHomePage: offer.showOnHomePage,
     })
     setImage(null)
     setModalOpen(true)
@@ -217,6 +220,13 @@ export default function OffersPage() {
                               {offer.isActive ? 'Active' : 'Inactive'}
                             </Badge>
                           </div>
+                          {offer.showOnHomePage ? (
+                            <div className="absolute bottom-3 right-3">
+                              <Badge variant="outline" className="border-white/80 bg-white/90 text-brand-700">
+                                Home Page
+                              </Badge>
+                            </div>
+                          ) : null}
                           <div className="absolute top-3 left-3">
                             <Badge variant="warning" className="text-base px-3 py-1">
                               {offer.discountPercentage}% OFF
@@ -328,6 +338,13 @@ export default function OffersPage() {
             />
             <Label>Active</Label>
           </div>
+          <div className="flex items-center gap-3">
+            <Switch
+              checked={form.watch('showOnHomePage')}
+              onCheckedChange={v => form.setValue('showOnHomePage', v)}
+            />
+            <Label>Show On Home Page</Label>
+          </div>
           <div className="flex justify-end gap-3 pt-2">
             <Button type="button" variant="outline" onClick={() => setModalOpen(false)}>
               Cancel
@@ -344,7 +361,7 @@ export default function OffersPage() {
         onClose={() => { setDeleteModalOpen(false); setDeletingId(null) }}
         title="Delete Offer"
       >
-        <p className="text-gray-600 mb-6">Are you sure you want to delete this offer? This action cannot be undone.</p>
+        <p className="text-gray-600 mb-6">Are you sure you want to delete this offer? It will be hidden from the website and admin listings but preserved securely in the database.</p>
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={() => { setDeleteModalOpen(false); setDeletingId(null) }}>
             Cancel

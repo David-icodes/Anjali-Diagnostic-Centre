@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Users, CalendarCheck, Clock, CheckCircle, DollarSign, TrendingUp, Radio, Package, FileText, Syringe, Phone, MapPin, ArrowRight, Activity } from 'lucide-react'
+import { Users, CalendarCheck, Clock, DollarSign, TrendingUp, Radio, Package, FileText, Syringe, Phone, ArrowRight, Activity } from 'lucide-react'
 import api from '@/lib/api'
-import { formatDate, formatPrice } from '@/lib/utils'
+import { formatDate } from '@/lib/utils'
 import StatusBadge from '@/components/admin/StatusBadge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -30,81 +29,97 @@ interface DashboardData {
   recentReports: any[]
 }
 
+const fallbackData: DashboardData = {
+  totalUsers: 0,
+  totalBookings: 0,
+  pending: 0,
+  completed: 0,
+  totalRevenue: 0,
+  dailyRevenue: 0,
+  labBookings: 0,
+  radiologyBookings: 0,
+  healthPackageBookings: 0,
+  sampleCollectionsToday: 0,
+  reportUploaded: 0,
+  assigned: 0,
+  processing: 0,
+  monthlyBookings: [],
+  monthlyRevenue: [],
+  recentBookings: [],
+  recentReports: [],
+}
+
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const fetchDashboard = useCallback(async () => {
+  const fetchDashboard = useCallback(async (silent = false) => {
     try {
-      setLoading(true)
-      const [bRes, recentRes] = await Promise.all([
+      if (!silent) setLoading(true)
+      const [statsResponse, recentResponse] = await Promise.all([
         api.get('/bookings/stats'),
         api.get('/bookings', { params: { limit: 8 } }),
       ])
-      const s = bRes.data
+
+      const stats = statsResponse.data
       setData({
-        totalUsers: s.totalUsers || 0,
-        totalBookings: s.total || 0,
-        pending: s.pending || 0,
-        completed: s.completed || 0,
-        totalRevenue: s.totalRevenue || 0,
-        dailyRevenue: s.dailyRevenue || 0,
-        labBookings: s.labBookings || 0,
-        radiologyBookings: s.radiologyBookings || 0,
-        healthPackageBookings: s.healthPackageBookings || 0,
-        sampleCollectionsToday: s.sampleCollectionsToday || 0,
-        reportUploaded: s.reportUploaded || 0,
-        assigned: s.assigned || 0,
-        processing: s.processing || 0,
-        monthlyBookings: (s.monthlyBookings || []).map((m: any) => ({
-          month: `${m._id?.month || ''}/${String(m._id?.year || '').slice(-2)}`,
-          bookings: m.count || 0,
+        totalUsers: stats.totalUsers || 0,
+        totalBookings: stats.total || 0,
+        pending: stats.pending || 0,
+        completed: stats.completed || 0,
+        totalRevenue: stats.totalRevenue || 0,
+        dailyRevenue: stats.dailyRevenue || 0,
+        labBookings: stats.labBookings || 0,
+        radiologyBookings: stats.radiologyBookings || 0,
+        healthPackageBookings: stats.healthPackageBookings || 0,
+        sampleCollectionsToday: stats.sampleCollectionsToday || 0,
+        reportUploaded: stats.reportUploaded || 0,
+        assigned: stats.assigned || 0,
+        processing: stats.processing || 0,
+        monthlyBookings: (stats.monthlyBookings || []).map((month: any) => ({
+          month: `${month._id?.month || ''}/${String(month._id?.year || '').slice(-2)}`,
+          bookings: month.count || 0,
         })).reverse(),
-        monthlyRevenue: (s.monthlyRevenue || []).map((m: any) => ({
-          month: `${m._id?.month || ''}/${String(m._id?.year || '').slice(-2)}`,
-          revenue: m.total || 0,
+        monthlyRevenue: (stats.monthlyRevenue || []).map((month: any) => ({
+          month: `${month._id?.month || ''}/${String(month._id?.year || '').slice(-2)}`,
+          revenue: month.total || 0,
         })).reverse(),
-        recentBookings: recentRes.data?.bookings || recentRes.data || [],
-        recentReports: s.recentReports || [],
+        recentBookings: recentResponse.data?.bookings || recentResponse.data || [],
+        recentReports: stats.recentReports || [],
       })
     } catch {
-      setData({
-        totalUsers: 0, totalBookings: 0, pending: 0, completed: 0,
-        totalRevenue: 0, dailyRevenue: 0, labBookings: 0,
-        radiologyBookings: 0, healthPackageBookings: 0,
-        sampleCollectionsToday: 0, reportUploaded: 0, assigned: 0, processing: 0,
-        monthlyBookings: [], monthlyRevenue: [], recentBookings: [], recentReports: [],
-      })
-    } finally { setLoading(false) }
+      setData(fallbackData)
+    } finally {
+      if (!silent) setLoading(false)
+    }
   }, [])
 
   useEffect(() => {
     fetchDashboard()
 
-    const handleRefresh = () => { fetchDashboard() }
+    const handleRefresh = () => fetchDashboard(true)
     const handleStorage = (event: StorageEvent) => {
-      if (event.key === 'admin-data-refresh') fetchDashboard()
+      if (event.key === 'admin-data-refresh') {
+        fetchDashboard(true)
+      }
     }
 
     window.addEventListener('admin-data-refresh', handleRefresh)
     window.addEventListener('storage', handleStorage)
 
-    const interval = window.setInterval(fetchDashboard, 15000)
-
     return () => {
       window.removeEventListener('admin-data-refresh', handleRefresh)
       window.removeEventListener('storage', handleStorage)
-      window.clearInterval(interval)
     }
   }, [fetchDashboard])
 
-  if (loading) {
+  if (loading && !data) {
     return (
       <div className="space-y-4">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {Array.from({ length: 6 }).map((_, index) => <Skeleton key={index} className="h-24 rounded-xl" />)}
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <Skeleton className="h-72 rounded-xl lg:col-span-2" />
           <Skeleton className="h-72 rounded-xl" />
         </div>
@@ -112,31 +127,30 @@ export default function DashboardPage() {
     )
   }
 
-  const d = data!
+  const dashboard = data || fallbackData
 
   return (
     <div className="space-y-4">
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <CompactStat label="Today's Revenue" value={`₹${(d.dailyRevenue || 0).toLocaleString('en-IN')}`} icon={DollarSign} color="green" />
-        <CompactStat label="Pending" value={d.pending} icon={Clock} color="amber" />
-        <CompactStat label="Sample Today" value={d.sampleCollectionsToday} icon={Phone} color="purple" />
-        <CompactStat label="In Progress" value={d.processing} icon={Syringe} color="blue" />
-        <CompactStat label="Reports Done" value={d.reportUploaded} icon={FileText} color="emerald" />
-        <CompactStat label="Total Revenue" value={`₹${(d.totalRevenue || 0).toLocaleString('en-IN')}`} icon={TrendingUp} color="cyan" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        <CompactStat label="Today's Revenue" value={`Rs. ${dashboard.dailyRevenue.toLocaleString('en-IN')}`} icon={DollarSign} color="green" />
+        <CompactStat label="Pending" value={dashboard.pending} icon={Clock} color="amber" />
+        <CompactStat label="Sample Today" value={dashboard.sampleCollectionsToday} icon={Phone} color="purple" />
+        <CompactStat label="In Progress" value={dashboard.processing} icon={Syringe} color="blue" />
+        <CompactStat label="Reports Done" value={dashboard.reportUploaded} icon={FileText} color="emerald" />
+        <CompactStat label="Total Revenue" value={`Rs. ${dashboard.totalRevenue.toLocaleString('en-IN')}`} icon={TrendingUp} color="cyan" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <CalendarCheck className="w-4 h-4 text-brand-500" /> Monthly Bookings & Revenue
+          <CardHeader className="px-5 pb-2 pt-4">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <CalendarCheck className="h-4 w-4 text-brand-500" /> Monthly Bookings
             </CardTitle>
           </CardHeader>
           <CardContent className="px-2 pb-3">
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={d.monthlyBookings} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                <BarChart data={dashboard.monthlyBookings} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-gray-100" />
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} />
                   <YAxis tick={{ fontSize: 10 }} />
@@ -149,12 +163,12 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Activity className="w-4 h-4 text-emerald-500" /> Quick Actions
+          <CardHeader className="px-5 pb-2 pt-4">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <Activity className="h-4 w-4 text-emerald-500" /> Quick Actions
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-5 pb-4 space-y-2">
+          <CardContent className="space-y-2 px-5 pb-4">
             <ActionRow icon={CalendarCheck} label="New Booking" color="blue" href="/admin/bookings" />
             <ActionRow icon={FileText} label="Upload Report" color="emerald" href="/admin/reports" />
             <ActionRow icon={Users} label="Manage Users" color="purple" href="/admin/users" />
@@ -165,38 +179,38 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-500" /> Pending Tasks
+          <CardHeader className="px-5 pb-2 pt-4">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <Clock className="h-4 w-4 text-amber-500" /> Pending Tasks
             </CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-4">
             <div className="space-y-2">
-              <TaskRow label="Pending Bookings" count={d.pending} color="amber" />
-              <TaskRow label="Assigned (awaiting contact)" count={d.assigned} color="blue" />
-              <TaskRow label="In Processing" count={d.processing} color="violet" />
-              <TaskRow label="Reports to Upload" count={d.reportUploaded} color="emerald" showZero />
-              <TaskRow label="Ready for Completion" count={d.completed} color="green" showZero />
+              <TaskRow label="Pending Bookings" count={dashboard.pending} color="amber" />
+              <TaskRow label="Assigned (awaiting contact)" count={dashboard.assigned} color="blue" />
+              <TaskRow label="In Processing" count={dashboard.processing} color="violet" />
+              <TaskRow label="Reports to Upload" count={dashboard.reportUploaded} color="emerald" showZero />
+              <TaskRow label="Ready for Completion" count={dashboard.completed} color="green" showZero />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader className="pb-2 pt-4 px-5">
-            <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-              <DollarSign className="w-4 h-4 text-emerald-500" /> Revenue Trend
+          <CardHeader className="px-5 pb-2 pt-4">
+            <CardTitle className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+              <DollarSign className="h-4 w-4 text-emerald-500" /> Revenue Trend
             </CardTitle>
           </CardHeader>
           <CardContent className="px-2 pb-3">
             <div className="h-44">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={d.monthlyRevenue} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+                <LineChart data={dashboard.monthlyRevenue} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-gray-100" />
                   <XAxis dataKey="month" tick={{ fontSize: 10 }} />
-                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => `₹${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip contentStyle={{ borderRadius: 8, padding: '6px 10px', fontSize: 12 }} formatter={(v: number) => [`₹${v.toLocaleString('en-IN')}`, 'Revenue']} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(value: number) => `Rs. ${(value / 1000).toFixed(0)}k`} />
+                  <Tooltip contentStyle={{ borderRadius: 8, padding: '6px 10px', fontSize: 12 }} formatter={(value: number) => [`Rs. ${value.toLocaleString('en-IN')}`, 'Revenue']} />
                   <Line type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -205,40 +219,40 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
-          <CardHeader className="pb-2 pt-4 px-5">
+          <CardHeader className="px-5 pb-2 pt-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold text-gray-700">Recent Bookings</CardTitle>
-              <span className="text-[10px] text-gray-400 font-medium">{d.totalBookings} total</span>
+              <span className="text-[10px] font-medium text-gray-400">{dashboard.totalBookings} total</span>
             </div>
           </CardHeader>
           <CardContent className="px-0 pb-1">
             <table className="w-full text-[11px]">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider">ID</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider">Patient</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider hidden sm:table-cell">Service</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider hidden md:table-cell">Type</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider hidden sm:table-cell">Date</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">ID</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Patient</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 sm:table-cell">Service</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 md:table-cell">Type</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 sm:table-cell">Date</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {d.recentBookings.length === 0 ? (
-                  <tr><td colSpan={6} className="text-center py-6 text-gray-300 text-xs">No bookings yet</td></tr>
+                {dashboard.recentBookings.length === 0 ? (
+                  <tr><td colSpan={6} className="py-6 text-center text-xs text-gray-300">No bookings yet</td></tr>
                 ) : (
-                  d.recentBookings.slice(0, 6).map((b: any, i: number) => (
-                    <tr key={b._id || i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-2 px-3 font-medium text-gray-800">#{b.bookingId || b._id?.slice(-5)}</td>
-                      <td className="py-2 px-3 text-gray-600">{b.patientName}</td>
-                      <td className="py-2 px-3 text-gray-600 hidden sm:table-cell truncate max-w-[120px]">{b.serviceName || b.testName}</td>
-                      <td className="py-2 px-3 hidden md:table-cell">
-                        <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-gray-100 text-gray-500">{b.serviceType || 'Lab'}</span>
+                  dashboard.recentBookings.slice(0, 6).map((booking: any, index: number) => (
+                    <tr key={booking._id || index} className="border-b border-gray-50 transition-colors hover:bg-gray-50/50">
+                      <td className="px-3 py-2 font-medium text-gray-800">#{booking.bookingId || booking._id?.slice(-5)}</td>
+                      <td className="px-3 py-2 text-gray-600">{booking.patientName}</td>
+                      <td className="hidden max-w-[120px] truncate px-3 py-2 text-gray-600 sm:table-cell">{booking.serviceName || booking.testName}</td>
+                      <td className="hidden px-3 py-2 md:table-cell">
+                        <span className="rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] text-gray-500">{booking.serviceType || 'Lab'}</span>
                       </td>
-                      <td className="py-2 px-3 text-gray-500 hidden sm:table-cell text-[10px]">{formatDate(b.preferredDate || b.createdAt)}</td>
-                      <td className="py-2 px-3"><StatusBadge status={b.status} /></td>
+                      <td className="hidden px-3 py-2 text-[10px] text-gray-500 sm:table-cell">{formatDate(booking.preferredDate || booking.createdAt)}</td>
+                      <td className="px-3 py-2"><StatusBadge status={booking.status} /></td>
                     </tr>
                   ))
                 )}
@@ -248,34 +262,34 @@ export default function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-2 pt-4 px-5">
+          <CardHeader className="px-5 pb-2 pt-4">
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold text-gray-700">Uploaded Reports</CardTitle>
-              <span className="text-[10px] text-gray-400 font-medium">{d.recentReports.length} recent</span>
+              <span className="text-[10px] font-medium text-gray-400">{dashboard.recentReports.length} recent</span>
             </div>
           </CardHeader>
           <CardContent className="px-0 pb-1">
             <table className="w-full text-[11px]">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider">Patient</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider">Mobile</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider hidden sm:table-cell">Booking</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider hidden sm:table-cell">Date</th>
-                  <th className="text-left py-2 px-3 font-medium text-gray-400 uppercase tracking-wider">Status</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Patient</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Mobile</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 sm:table-cell">Booking</th>
+                  <th className="hidden px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400 sm:table-cell">Date</th>
+                  <th className="px-3 py-2 text-left text-[10px] font-medium uppercase tracking-wider text-gray-400">Status</th>
                 </tr>
               </thead>
               <tbody>
-                {d.recentReports.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-6 text-gray-300 text-xs">No reports uploaded</td></tr>
+                {dashboard.recentReports.length === 0 ? (
+                  <tr><td colSpan={5} className="py-6 text-center text-xs text-gray-300">No reports uploaded</td></tr>
                 ) : (
-                  d.recentReports.map((r: any, i: number) => (
-                    <tr key={r._id || i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-2 px-3 font-medium text-gray-800">{r.patientName}</td>
-                      <td className="py-2 px-3 text-gray-500 text-[10px]">{r.mobileNumber}</td>
-                      <td className="py-2 px-3 text-gray-500 text-[10px] hidden sm:table-cell">#{r.booking?.bookingId || 'N/A'}</td>
-                      <td className="py-2 px-3 text-gray-500 text-[10px] hidden sm:table-cell">{formatDate(r.createdAt)}</td>
-                      <td className="py-2 px-3"><StatusBadge status={r.status} /></td>
+                  dashboard.recentReports.map((report: any, index: number) => (
+                    <tr key={report._id || index} className="border-b border-gray-50 transition-colors hover:bg-gray-50/50">
+                      <td className="px-3 py-2 font-medium text-gray-800">{report.patientName}</td>
+                      <td className="px-3 py-2 text-[10px] text-gray-500">{report.mobileNumber}</td>
+                      <td className="hidden px-3 py-2 text-[10px] text-gray-500 sm:table-cell">#{report.booking?.bookingId || 'N/A'}</td>
+                      <td className="hidden px-3 py-2 text-[10px] text-gray-500 sm:table-cell">{formatDate(report.createdAt)}</td>
+                      <td className="px-3 py-2"><StatusBadge status={report.status} /></td>
                     </tr>
                   ))
                 )}
@@ -285,11 +299,11 @@ export default function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <MiniStat label="Total Users" value={d.totalUsers} icon={Users} />
-        <MiniStat label="Lab Tests" value={d.labBookings} icon={Syringe} />
-        <MiniStat label="Radiology" value={d.radiologyBookings} icon={Radio} />
-        <MiniStat label="Health Packages" value={d.healthPackageBookings} icon={Package} />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <MiniStat label="Total Users" value={dashboard.totalUsers} icon={Users} />
+        <MiniStat label="Lab Tests" value={dashboard.labBookings} icon={Syringe} />
+        <MiniStat label="Radiology" value={dashboard.radiologyBookings} icon={Radio} />
+        <MiniStat label="Health Packages" value={dashboard.healthPackageBookings} icon={Package} />
       </div>
     </div>
   )
@@ -304,14 +318,15 @@ function CompactStat({ label, value, icon: Icon, color }: { label: string; value
     emerald: 'from-emerald-500 to-emerald-600',
     cyan: 'from-cyan-500 to-cyan-600',
   }
+
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-4 flex items-center gap-3 shadow-sm">
-      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${colors[color]} flex items-center justify-center shrink-0 shadow-sm`}>
-        <Icon className="w-4 h-4 text-white" />
+    <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+      <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${colors[color]} shadow-sm`}>
+        <Icon className="h-4 w-4 text-white" />
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wider truncate">{label}</p>
-        <p className="text-sm font-bold text-gray-900 mt-0.5">{typeof value === 'number' ? value.toLocaleString('en-IN') : value}</p>
+        <p className="truncate text-[10px] font-medium uppercase tracking-wider text-gray-400">{label}</p>
+        <p className="mt-0.5 text-sm font-bold text-gray-900">{typeof value === 'number' ? value.toLocaleString('en-IN') : value}</p>
       </div>
     </div>
   )
@@ -319,12 +334,12 @@ function CompactStat({ label, value, icon: Icon, color }: { label: string; value
 
 function MiniStat({ label, value, icon: Icon }: { label: string; value: number; icon: any }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-3 flex items-center gap-2.5 shadow-sm">
-      <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0">
-        <Icon className="w-3.5 h-3.5 text-gray-500" />
+    <div className="flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gray-50">
+        <Icon className="h-3.5 w-3.5 text-gray-500" />
       </div>
       <div>
-        <p className="text-[9px] font-medium text-gray-400 uppercase tracking-wider">{label}</p>
+        <p className="text-[9px] font-medium uppercase tracking-wider text-gray-400">{label}</p>
         <p className="text-xs font-bold text-gray-900">{value.toLocaleString('en-IN')}</p>
       </div>
     </div>
@@ -334,12 +349,12 @@ function MiniStat({ label, value, icon: Icon }: { label: string; value: number; 
 function ActionRow({ icon: Icon, label, color, href }: { icon: any; label: string; color: string; href: string }) {
   const dotColors: Record<string, string> = { blue: 'bg-blue-400', emerald: 'bg-emerald-400', purple: 'bg-purple-400', teal: 'bg-teal-400', cyan: 'bg-cyan-400', rose: 'bg-rose-400' }
   return (
-    <a href={href} className="flex items-center justify-between px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors group cursor-pointer">
+    <a href={href} className="group flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-gray-50">
       <div className="flex items-center gap-2.5">
-        <span className={`w-2 h-2 rounded-full ${dotColors[color]}`} />
+        <span className={`h-2 w-2 rounded-full ${dotColors[color]}`} />
         <span className="text-xs font-medium text-gray-600 group-hover:text-gray-900">{label}</span>
       </div>
-      <ArrowRight className="w-3 h-3 text-gray-300 group-hover:text-brand-500 transition-colors" />
+      <ArrowRight className="h-3 w-3 text-gray-300 transition-colors group-hover:text-brand-500" />
     </a>
   )
 }
@@ -348,9 +363,9 @@ function TaskRow({ label, count, color, showZero }: { label: string; count: numb
   if (count === 0 && !showZero) return null
   const colors: Record<string, string> = { amber: 'text-amber-600 bg-amber-50', blue: 'text-blue-600 bg-blue-50', violet: 'text-violet-600 bg-violet-50', emerald: 'text-emerald-600 bg-emerald-50', green: 'text-green-600 bg-green-50' }
   return (
-    <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-gray-50/50">
+    <div className="flex items-center justify-between rounded-lg bg-gray-50/50 px-3 py-2">
       <span className="text-xs text-gray-600">{label}</span>
-      <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${colors[color]}`}>{count}</span>
+      <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${colors[color]}`}>{count}</span>
     </div>
   )
 }
