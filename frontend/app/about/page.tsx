@@ -61,8 +61,8 @@ const highlights = [
 ]
 
 const stats = [
-  { icon: Users, value: '50,000+', label: 'Patients Served' },
-  { icon: Award, value: '100+', label: 'Tests Offered' },
+  { icon: Users, value: '100+', label: 'Patients Served' },
+  { icon: Award, value: '99%', label: 'Tests Offered' },
   { icon: ShieldCheck, value: '99%', label: 'Focused Accuracy' },
   { icon: Clock3, value: '10+', label: 'Years of Service' },
 ]
@@ -90,73 +90,73 @@ export default function AboutPage() {
 
 function StorySection() {
   return (
-    <section className="bg-white py-16 sm:py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid lg:grid-cols-2 gap-14 items-center">
-        <motion.div
-          initial={{ opacity: 0, x: -30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <span className="inline-block px-4 py-1.5 rounded-full bg-brand-100 text-brand-700 text-sm font-medium mb-4">
-            Our Story
-          </span>
-          <h2 className="mb-5 text-3xl font-bold text-gray-900 sm:text-4xl">
-            Delivering Excellence in Diagnostics Since 2014
-          </h2>
-          <div className="space-y-4 text-base leading-relaxed text-gray-600">
-            <p>
-              Anjali Diagnostic Centre was founded with a vision to provide accurate,
-              affordable, and accessible diagnostic services to every individual. Over the
-              years, we have grown from a small lab into a state-of-the-art diagnostic centre
-              trusted by thousands of patients and healthcare providers.
-            </p>
-            <p>
-              Our commitment to quality, precision, and patient-centric care has made us a
-              preferred choice for diagnostic services. We continually invest in the latest
-              technology and training to ensure the highest standards of accuracy and reliability.
-            </p>
-            <p>
-              At Anjali Diagnostic Centre, we believe that timely and accurate diagnosis is the
-              cornerstone of effective healthcare. Every test we perform is a step towards
-              better health outcomes for our patients.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-4 mt-8">
-            {['NABL Accredited', 'ISO Certified', '100+ Tests', 'Expert Team'].map((item) => (
-              <div key={item} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-50 text-green-700 text-sm font-medium">
-                <CheckCircle2 className="w-4 h-4" />
-                {item}
-              </div>
-            ))}
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="relative"
-        >
-          <div className="relative rounded-2xl overflow-hidden shadow-xl">
-            <div className="aspect-[4/3] bg-gradient-to-br from-brand-100 to-brand-50 flex items-center justify-center">
-              <Microscope className="w-32 h-32 text-brand-300" />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-950/30 to-transparent" />
-          </div>
+    <section className="bg-white py-14 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid items-center gap-12 lg:grid-cols-2">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl border border-gray-100 p-5"
+            transition={{ duration: 0.6 }}
           >
-            <p className="text-3xl font-bold text-brand-600">10+</p>
-            <p className="text-sm text-gray-500">Years of Excellence</p>
+            <span className="mb-4 inline-block rounded-full bg-brand-100 px-4 py-1.5 text-sm font-medium text-brand-700">
+              Our Story
+            </span>
+            <h2 className="mb-5 text-3xl font-bold text-gray-900 sm:text-4xl">
+              Delivering Excellence in Diagnostics Since 2014
+            </h2>
+            <div className="space-y-4 text-base leading-relaxed text-gray-600">
+              <p>
+                Anjali Diagnostic Centre was founded with a vision to provide accurate,
+                affordable, and accessible diagnostic services to every individual. Over the
+                years, we have grown from a small lab into a state-of-the-art diagnostic centre
+                trusted by thousands of patients and healthcare providers.
+              </p>
+              <p>
+                Our commitment to quality, precision, and patient-centric care has made us a
+                preferred choice for diagnostic services. We continually invest in the latest
+                technology and training to ensure the highest standards of accuracy and reliability.
+              </p>
+              <p>
+                At Anjali Diagnostic Centre, we believe that timely and accurate diagnosis is the
+                cornerstone of effective healthcare. Every test we perform is a step towards
+                better health outcomes for our patients.
+              </p>
+            </div>
+            <div className="mt-8 flex flex-wrap gap-4">
+              {['NABL Accredited', 'ISO Certified', '100+ Tests', 'Expert Team'].map((item) => (
+                <div key={item} className="flex items-center gap-2 rounded-lg bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700">
+                  <CheckCircle2 className="h-4 w-4" />
+                  {item}
+                </div>
+              ))}
+            </div>
           </motion.div>
-        </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="relative"
+          >
+            <div className="relative overflow-hidden rounded-2xl shadow-xl">
+              <div className="flex aspect-[4/3] items-center justify-center bg-gradient-to-br from-brand-100 to-brand-50">
+                <Microscope className="h-32 w-32 text-brand-300" />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-950/30 to-transparent" />
+            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="absolute -bottom-6 -left-6 rounded-2xl border border-gray-100 bg-white p-5 shadow-xl"
+            >
+              <p className="text-3xl font-bold text-brand-600">10+</p>
+              <p className="text-sm text-gray-500">Years of Excellence</p>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>
@@ -189,9 +189,9 @@ function SlideshowSection() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="overflow-hidden rounded-[2rem] border border-white/80 bg-white/70 p-3 shadow-[0_30px_80px_rgba(15,118,110,0.12)] backdrop-blur-sm"
+          className="overflow-hidden rounded-[2rem] bg-white/70 shadow-[0_30px_80px_rgba(15,118,110,0.12)] backdrop-blur-sm"
         >
-          <div className="relative h-[320px] overflow-hidden rounded-[1.6rem] bg-white sm:h-[400px] lg:h-[560px]">
+          <div className="relative h-[320px] overflow-hidden rounded-[2rem] bg-white sm:h-[400px] lg:h-[560px]">
             {ABOUT_SLIDES.map((slide, index) => (
               <div
                 key={slide.image}
@@ -251,7 +251,7 @@ function SlideshowSection() {
 
 function PrinciplesSection() {
   return (
-    <section className="bg-white py-16 sm:py-20">
+    <section className="bg-white py-14 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">Vision, mission, and patient commitment</h2>
@@ -282,7 +282,7 @@ function PrinciplesSection() {
 
 function HighlightsSection() {
   return (
-    <section className="bg-[#F8FBFC] py-16 sm:py-20">
+    <section className="bg-[#F8FBFC] py-14 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 text-center">
           <h2 className="mb-4 text-3xl font-bold text-gray-900 sm:text-4xl">Why patients choose Anjali Diagnostics</h2>
@@ -316,8 +316,11 @@ function HighlightsSection() {
 
 function StatsSection() {
   return (
-    <section className="bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400 py-16">
+    <section className="bg-white py-14 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-10 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Anjali Diagnostics at a glance</h2>
+        </div>
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat, index) => (
             <motion.div
@@ -326,13 +329,13 @@ function StatsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.08 }}
-              className="rounded-[1.5rem] border border-white/15 bg-white/10 p-6 text-center backdrop-blur-sm"
+              className="flex min-h-[210px] flex-col items-center justify-center rounded-[1.5rem] border border-[#D6F5EF] bg-[linear-gradient(180deg,#FFFFFF_0%,#F3FCFA_100%)] p-6 text-center shadow-sm"
             >
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/10">
-                <stat.icon className="h-7 w-7 text-white" />
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-50 text-brand-600">
+                <stat.icon className="h-7 w-7" />
               </div>
-              <p className="text-3xl font-bold text-white">{stat.value}</p>
-              <p className="mt-1 text-sm font-medium text-brand-100">{stat.label}</p>
+              <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+              <p className="mt-2 text-sm font-medium text-gray-600">{stat.label}</p>
             </motion.div>
           ))}
         </div>

@@ -330,17 +330,18 @@ export default function TestsPage() {
                 <Input {...register('name')} error={errors.name?.message} placeholder="e.g. Complete Blood Count" />
               </div>
               <div>
-                <Label>Category</Label>
-                <Select value={watch('category')} onValueChange={(value) => setValue('category', value)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="test-category">Category</Label>
+                <select
+                  id="test-category"
+                  value={watch('category')}
+                  onChange={(event) => setValue('category', event.target.value, { shouldValidate: true })}
+                  className="mt-2 h-11 w-full rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+                >
+                  <option value="">Select category</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
                 {errors.category && <p className="mt-1 text-xs text-destructive">{errors.category.message}</p>}
               </div>
             </div>
@@ -410,3 +411,4 @@ export default function TestsPage() {
     </motion.div>
   )
 }
+

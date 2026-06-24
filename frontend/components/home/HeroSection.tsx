@@ -57,21 +57,30 @@ export default function HeroSection() {
   useEffect(() => {
     const loadSlides = async () => {
       try {
-        const { data } = await api.get('/hero-slides', { params: { isActive: true } })
+        const { data } = await api.get('/hero-slides', { params: { active: true } })
         if (Array.isArray(data) && data.length > 0) {
           setSlides(data)
         }
-      } catch {}
+      } catch {
+        setSlides(fallbackSlides)
+      }
     }
 
     loadSlides()
   }, [])
 
   useEffect(() => {
+    slides.forEach((slide) => {
+      const image = new window.Image()
+      image.src = slide.image
+    })
+  }, [slides])
+
+  useEffect(() => {
     if (slides.length <= 1) return
     const timer = window.setInterval(() => {
       setActiveSlide((prev) => (prev + 1) % slides.length)
-    }, 4500)
+    }, 4000)
 
     return () => window.clearInterval(timer)
   }, [slides.length])
@@ -82,7 +91,7 @@ export default function HeroSection() {
       <div className="pointer-events-none absolute bottom-0 left-0 h-[420px] w-[420px] -translate-x-1/3 translate-y-1/3 rounded-full bg-[#4CAF50]/10 blur-[120px]" />
 
       <div className="mx-auto max-w-7xl px-4 pb-10 pt-12 sm:px-6 md:pb-12 md:pt-16 lg:px-8">
-        <div className="grid items-center gap-12 lg:grid-cols-[1.05fr_0.95fr]">
+        <div className="grid items-center gap-10 lg:grid-cols-[1.02fr_0.98fr] lg:gap-12">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
@@ -138,62 +147,61 @@ export default function HeroSection() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.94 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white p-3 shadow-[0_30px_80px_rgba(16,185,129,0.16)]">
-              <div className="relative aspect-[5/4] overflow-hidden rounded-[1.5rem] bg-slate-100">
-                {slides.map((slide, index) => (
-                  <div
-                    key={slide._id}
-                    className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
-                      index === activeSlide ? 'opacity-100' : 'opacity-0'
-                    }`}
+            <div className="relative h-[320px] overflow-hidden rounded-[2rem] bg-slate-100 shadow-[0_30px_80px_rgba(16,185,129,0.16)] sm:h-[420px] lg:h-[540px]">
+              {slides.map((slide, index) => (
+                <div
+                  key={slide._id}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                    index === activeSlide ? 'opacity-100' : 'opacity-0'
+                  }`}
+                >
+                  <Image
+                    src={slide.image}
+                    alt={slide.title || 'Anjali Diagnostics hero slide'}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                    sizes="(max-width: 1024px) 100vw, 48vw"
+                  />
+                </div>
+              ))}
+
+              {slides.length > 1 ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length)}
+                    className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition hover:bg-white"
+                    aria-label="Previous hero slide"
                   >
-                    <Image
-                      src={slide.image}
-                      alt={slide.title || 'Anjali Diagnostics hero slide'}
-                      fill
-                      className="object-cover"
-                      priority={index === 0}
-                      sizes="(max-width: 1024px) 100vw, 42vw"
-                    />
+                    <span className="text-2xl leading-none">&lt;</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSlide((prev) => (prev + 1) % slides.length)}
+                    className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition hover:bg-white"
+                    aria-label="Next hero slide"
+                  >
+                    <span className="text-2xl leading-none">&gt;</span>
+                  </button>
+                  <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-white/75 px-3 py-2 backdrop-blur-sm">
+                    {slides.map((slide, index) => (
+                      <button
+                        key={slide._id}
+                        type="button"
+                        onClick={() => setActiveSlide(index)}
+                        className={`h-2.5 rounded-full transition-all ${index === activeSlide ? 'w-7 bg-brand-600' : 'w-2.5 bg-gray-300'}`}
+                        aria-label={`Go to hero slide ${index + 1}`}
+                      />
+                    ))}
                   </div>
-                ))}
-                {slides.length > 1 ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setActiveSlide((prev) => (prev - 1 + slides.length) % slides.length)}
-                      className="absolute left-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition hover:bg-white"
-                      aria-label="Previous hero slide"
-                    >
-                      <span className="text-xl leading-none">‹</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setActiveSlide((prev) => (prev + 1) % slides.length)}
-                      className="absolute right-4 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-lg transition hover:bg-white"
-                      aria-label="Next hero slide"
-                    >
-                      <span className="text-xl leading-none">›</span>
-                    </button>
-                    <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-white/70 px-3 py-2 backdrop-blur-sm">
-                      {slides.map((slide, index) => (
-                        <button
-                          key={slide._id}
-                          type="button"
-                          onClick={() => setActiveSlide(index)}
-                          className={`h-2.5 rounded-full transition-all ${index === activeSlide ? 'w-7 bg-brand-600' : 'w-2.5 bg-gray-300'}`}
-                          aria-label={`Go to hero slide ${index + 1}`}
-                        />
-                      ))}
-                    </div>
-                  </>
-                ) : null}
-              </div>
+                </>
+              ) : null}
             </div>
           </motion.div>
         </div>

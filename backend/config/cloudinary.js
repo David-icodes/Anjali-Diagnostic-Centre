@@ -81,4 +81,17 @@ const uploadBufferToCloudinary = ({
   uploadStream.end(buffer);
 });
 
-module.exports = { cloudinary, upload, pdfUpload, uploadBufferToCloudinary };
+const deleteFromCloudinary = async ({
+  publicId,
+  resourceType = 'image',
+  type = 'upload',
+}) => {
+  if (!publicId) return null;
+
+  return cloudinary.uploader.destroy(publicId, {
+    resource_type: resourceType,
+    type,
+  });
+};
+
+module.exports = { cloudinary, upload, pdfUpload, uploadBufferToCloudinary, deleteFromCloudinary };

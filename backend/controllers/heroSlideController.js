@@ -1,5 +1,5 @@
 const HeroSlide = require('../models/HeroSlide');
-const { uploadBufferToCloudinary } = require('../config/cloudinary');
+const { uploadBufferToCloudinary, deleteFromCloudinary } = require('../config/cloudinary');
 
 const uploadHeroImage = async (file, slideIdHint) => {
   if (!file?.buffer) return null;
@@ -29,8 +29,9 @@ const toBoolean = (value, fallback = false) => {
 const getHeroSlides = async (req, res) => {
   try {
     const query = {};
-    if (req.query.isActive !== undefined) {
-      query.isActive = req.query.isActive === 'true';
+    const activeFilter = req.query.active ?? req.query.isActive;
+    if (activeFilter !== undefined) {
+      query.isActive = activeFilter === 'true';
     }
     const slides = await HeroSlide.find(query).sort({ displayOrder: 1, createdAt: -1 });
     res.json(slides);
@@ -74,9 +75,13 @@ const updateHeroSlide = async (req, res) => {
     };
 
     if (req.file) {
+      const previousPublicId = slide.imagePublicId;
       const imageData = await uploadHeroImage(req.file, slide._id.toString());
       updates.image = imageData?.image || slide.image;
       updates.imagePublicId = imageData?.imagePublicId || slide.imagePublicId;
+      if (previousPublicId && previousPublicId !== updates.imagePublicId) {
+        await deleteFromCloudinary({ publicId: previousPublicId, resourceType: 'image' });
+      }
     }
 
     const updatedSlide = await HeroSlide.findByIdAndUpdate(req.params.id, { $set: updates }, { new: true, runValidators: true });
@@ -93,6 +98,9 @@ const deleteHeroSlide = async (req, res) => {
       return res.status(404).json({ message: 'Hero slide not found' });
     }
 
+    if (slide.imagePublicId) {
+      await deleteFromCloudinary({ publicId: slide.imagePublicId, resourceType: 'image' });
+    }
     await HeroSlide.deleteOne({ _id: slide._id });
     res.json({ message: 'Hero slide deleted successfully' });
   } catch (error) {

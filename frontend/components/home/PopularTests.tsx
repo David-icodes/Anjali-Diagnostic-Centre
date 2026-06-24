@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import { Search, ArrowRight } from 'lucide-react'
-import { cn, formatPrice } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,9 +14,9 @@ interface Test {
   _id: string
   name: string
   category: string
-  description: string
+  description?: string
   originalPrice: number
-  offerPrice: number
+  offerPrice?: number
   image?: string
   isPopular: boolean
 }
@@ -32,14 +32,17 @@ export default function PopularTests() {
   useEffect(() => {
     const fetchTests = async () => {
       try {
-        const { data } = await api.get('/tests/popular')
-        setTests(data?.tests || data?.data || [])
+        const { data } = await api.get('/tests', {
+          params: { popular: true, isActive: true, limit: 8 },
+        })
+        setTests(data?.tests || [])
       } catch {
-        setError('Failed to load tests')
+        setError('Failed to load popular tests')
       } finally {
         setLoading(false)
       }
     }
+
     fetchTests()
   }, [])
 
@@ -47,137 +50,123 @@ export default function PopularTests() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+      transition: { staggerChildren: 0.08, delayChildren: 0.12 },
     },
   }
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 50, scale: 0.95 },
+    hidden: { opacity: 0, y: 24 },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
-      transition: { duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] },
+      transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] },
     },
   }
 
   return (
-    <section className="py-24 px-4 bg-gradient-to-b from-background to-brand-50/30" id="popular-tests">
-      <div ref={sectionRef} className="max-w-7xl mx-auto">
+    <section className="bg-white px-4 py-16 sm:px-6 lg:px-8" id="popular-tests">
+      <div ref={sectionRef} className="mx-auto max-w-7xl">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.5 }}
+          className="mb-10 flex flex-col gap-3 text-center sm:mb-12"
         >
-          <span className="inline-block px-4 py-2 rounded-full bg-brand-100 text-brand-700 text-sm font-medium mb-4">
+          <span className="mx-auto inline-flex rounded-full bg-brand-100 px-4 py-2 text-sm font-medium text-brand-700">
             Popular Tests
           </span>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Most{' '}
-            <span className="text-gradient">Booked Tests</span>
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            High-quality diagnostics at affordable prices, trusted by thousands
+          <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">Most Booked Tests</h2>
+          <p className="mx-auto max-w-2xl text-sm leading-relaxed text-gray-600 sm:text-base">
+            Popular diagnostics selected by patients, displayed automatically when the admin enables the Popular toggle.
           </p>
         </motion.div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-2xl border overflow-hidden">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
                 <Skeleton className="h-48 rounded-none" />
-                <div className="p-5 space-y-3">
-                  <Skeleton className="h-4 w-20" />
-                  <Skeleton className="h-5 w-full" />
+                <div className="space-y-3 p-5">
                   <Skeleton className="h-4 w-24" />
-                  <div className="flex gap-3">
-                    <Skeleton className="h-4 w-16" />
-                    <Skeleton className="h-4 w-16" />
-                  </div>
-                  <Skeleton className="h-10 w-full rounded-xl" />
+                  <Skeleton className="h-5 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-10 w-full rounded-full" />
                 </div>
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="text-center py-20">
-            <Search className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
-            <p className="text-lg text-muted-foreground">{error}</p>
-            <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
-              Try Again
-            </Button>
+          <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
+            <Search className="mx-auto mb-4 h-10 w-10 text-gray-400" />
+            <p className="text-sm text-gray-600 sm:text-base">{error}</p>
+          </div>
+        ) : tests.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-gray-200 bg-gray-50 px-6 py-12 text-center">
+            <p className="text-sm text-gray-600 sm:text-base">
+              No popular tests are enabled right now. Turn on the Popular option in Test Management to show them here.
+            </p>
           </div>
         ) : (
           <motion.div
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? 'visible' : 'hidden'}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
           >
-            {tests.map((test) => (
-              <motion.div
-                key={test._id}
-                variants={cardVariants}
-                className="group relative rounded-2xl border bg-card overflow-hidden shadow-sm hover:shadow-2xl hover:shadow-brand-500/10 transition-all duration-500 cursor-pointer"
-                onClick={() => router.push(`/tests/${test._id}`)}
-              >
-                <div className="relative h-48 overflow-hidden bg-gradient-to-br from-brand-100 to-brand-50">
-                  {test.image ? (
-                    <img
-                      src={test.image}
-                      alt={test.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Search className="w-12 h-12 text-brand-300" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                  <div className="absolute top-3 left-3">
-                    <Badge variant="info">{test.category}</Badge>
-                  </div>
-                  {test.offerPrice < test.originalPrice && (
-                    <div className="absolute top-3 right-3">
-                      <Badge variant="success">
-                        {Math.round(((test.originalPrice - test.offerPrice) / test.originalPrice) * 100)}% OFF
-                      </Badge>
-                    </div>
-                  )}
-                </div>
-                <div className="p-5">
-                  <h3 className="text-base font-semibold mb-2 line-clamp-1 group-hover:text-brand-600 transition-colors">
-                    {test.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
-                    {test.description}
-                  </p>
-                  <div className="flex items-center gap-3 mb-4">
-                    <span className="text-2xl font-bold text-brand-600">
-                      {formatPrice(test.offerPrice)}
-                    </span>
-                    {test.originalPrice > test.offerPrice && (
-                      <span className="text-sm text-muted-foreground line-through">
-                        {formatPrice(test.originalPrice)}
-                      </span>
+            {tests.map((test) => {
+              const displayOfferPrice = test.offerPrice ?? test.originalPrice
+              const hasDiscount = displayOfferPrice < test.originalPrice
+
+              return (
+                <motion.div
+                  key={test._id}
+                  variants={cardVariants}
+                  className="overflow-hidden rounded-[1.75rem] border border-gray-100 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-brand-500/10"
+                >
+                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-brand-100 to-brand-50">
+                    {test.image ? (
+                      <img
+                        src={test.image}
+                        alt={test.name}
+                        className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center">
+                        <Search className="h-10 w-10 text-brand-300" />
+                      </div>
                     )}
+                    <div className="absolute left-4 top-4">
+                      <Badge variant="info">{test.category}</Badge>
+                    </div>
                   </div>
-                  <Button
-                    variant="gradient"
-                    className="w-full group"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      router.push(`/booking?test=${test._id}`)
-                    }}
-                  >
-                    Book Now
-                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </div>
-                <div className="absolute inset-0 rounded-2xl ring-1 ring-inset ring-brand-500/0 group-hover:ring-brand-500/30 transition-all duration-500 pointer-events-none" />
-              </motion.div>
-            ))}
+
+                  <div className="space-y-4 p-5">
+                    <div className="space-y-2">
+                      <h3 className="line-clamp-1 text-lg font-semibold text-gray-900">{test.name}</h3>
+                      <p className="line-clamp-2 text-sm leading-relaxed text-gray-600">
+                        {test.description || 'Reliable diagnostic testing with patient-friendly service and timely reporting.'}
+                      </p>
+                    </div>
+
+                    <div className="flex items-end gap-3">
+                      <span className="text-2xl font-bold text-brand-600">{formatPrice(displayOfferPrice)}</span>
+                      {hasDiscount ? (
+                        <span className="pb-1 text-sm text-gray-400 line-through">{formatPrice(test.originalPrice)}</span>
+                      ) : null}
+                    </div>
+
+                    <Button
+                      variant="gradient"
+                      className="w-full"
+                      onClick={() => router.push(`/booking?test=${test._id}`)}
+                    >
+                      Book Now
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                  </div>
+                </motion.div>
+              )
+            })}
           </motion.div>
         )}
       </div>

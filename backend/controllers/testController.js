@@ -136,8 +136,15 @@ const getCategories = async (req, res) => {
 
 const getPopularTests = async (req, res) => {
   try {
-    const tests = await Test.find({ isActive: true, isPopular: true }).limit(8);
-    res.json(tests);
+    const tests = await Test.find({
+      isActive: true,
+      isPopular: true,
+      isDeleted: { $ne: true },
+    })
+      .sort({ createdAt: -1 })
+      .limit(8);
+
+    res.json({ tests });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
