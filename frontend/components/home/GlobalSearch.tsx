@@ -3,15 +3,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Search, X, Loader2, ArrowRight, ChevronDown } from 'lucide-react'
+import { Search, X, Loader2, ArrowRight } from 'lucide-react'
 import api from '@/lib/api'
 
 interface Test {
   _id: string
   name: string
   category: string
-  price: number
-  discountPrice?: number
+  price?: number
+  originalPrice?: number
+  offerPrice?: number
 }
 
 const commonTests = [
@@ -19,7 +20,17 @@ const commonTests = [
   'HbA1c', 'Lipid Profile', 'TSH', 'CRP', 'ESR',
 ]
 
-export default function GlobalSearch() {
+interface GlobalSearchProps {
+  placeholder?: string
+  className?: string
+  compact?: boolean
+}
+
+export default function GlobalSearch({
+  placeholder = 'Search tests: CBP, Thyroid, Vitamin, Glucose, LFT, MRI, CT Scan...',
+  className = '',
+  compact = false,
+}: GlobalSearchProps) {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -37,7 +48,9 @@ export default function GlobalSearch() {
       const res = await api.get(`/tests?search=${encodeURIComponent(q)}&limit=10`)
       const data = res.data?.tests || res.data || []
       setResults(Array.isArray(data) ? data : [])
-    } catch { setResults([]) }
+    } catch {
+      setResults([])
+    }
     setLoading(false)
   }, [])
 
@@ -72,10 +85,12 @@ export default function GlobalSearch() {
     else if (e.key === 'Escape') setIsOpen(false)
   }
 
+  const displayPrice = (test: Test) => test.offerPrice ?? test.originalPrice ?? test.price ?? 0
+
   return (
-    <div ref={dropdownRef} className="relative">
-      <div className="relative flex items-center bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-200 transition-all duration-300 focus-within:border-[#1BAE9A] focus-within:shadow-[#1BAE9A]/10">
-        <Search className="absolute left-5 w-5 h-5 text-gray-400" />
+    <div ref={dropdownRef} className={`relative ${className}`}>
+      <div className={`relative flex items-center rounded-2xl border border-gray-200 bg-white transition-all duration-150 focus-within:border-[#14B8A6] focus-within:shadow-[#14B8A6]/10 ${compact ? 'shadow-sm' : 'shadow-xl shadow-gray-200/50'}`}>
+        <Search className={`absolute left-4 text-gray-400 ${compact ? 'h-4 w-4' : 'h-5 w-5 left-5'}`} />
         <input
           ref={inputRef}
           type="text"
@@ -83,15 +98,15 @@ export default function GlobalSearch() {
           onChange={(e) => { setQuery(e.target.value); setIsOpen(true); setSelectedIndex(-1) }}
           onFocus={() => setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search tests: CBP, Thyroid, Vitamin, Glucose, LFT, MRI, CT Scan..."
-          className="w-full pl-14 pr-12 py-4 bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 text-base"
+          placeholder={placeholder}
+          className={`w-full bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 ${compact ? 'py-3 pl-11 pr-10 text-sm' : 'pl-14 pr-12 py-4 text-base'}`}
         />
         {query && (
           <button
             onClick={() => { setQuery(''); setResults([]); inputRef.current?.focus() }}
-            className="absolute right-4 p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute right-3 rounded-lg p-1.5 text-gray-400 transition-colors duration-150 hover:bg-gray-100 hover:text-gray-600"
           >
-            <X className="w-4 h-4" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
@@ -103,17 +118,17 @@ export default function GlobalSearch() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -5 }}
             transition={{ duration: 0.15 }}
-            className="absolute top-full left-0 right-0 bg-white rounded-2xl shadow-xl shadow-gray-200/50 border border-gray-100 mt-2 overflow-hidden z-50"
+            className="absolute left-0 right-0 top-full z-50 mt-2 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl shadow-gray-200/50"
           >
             {!query && (
               <div className="p-4">
-                <p className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">Popular Searches</p>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wider text-gray-400">Popular Searches</p>
                 <div className="flex flex-wrap gap-2">
                   {commonTests.map((test) => (
                     <button
                       key={test}
                       onClick={() => { setQuery(test); setIsOpen(true); fetchResults(test) }}
-                      className="px-3 py-1.5 rounded-lg bg-[#1BAE9A]/5 text-sm text-[#1BAE9A] hover:bg-[#1BAE9A]/10 transition-colors font-medium"
+                      className="rounded-lg bg-[#1BAE9A]/5 px-3 py-1.5 text-sm font-medium text-[#1BAE9A] transition-colors duration-150 hover:bg-[#1BAE9A]/10"
                     >
                       {test}
                     </button>
@@ -125,7 +140,7 @@ export default function GlobalSearch() {
             <div className="max-h-72 overflow-y-auto border-t border-gray-50">
               {loading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="w-5 h-5 text-[#1BAE9A] animate-spin" />
+                  <Loader2 className="h-5 w-5 animate-spin text-[#1BAE9A]" />
                   <span className="ml-2 text-sm text-gray-400">Searching...</span>
                 </div>
               ) : results.length > 0 ? (
@@ -133,33 +148,29 @@ export default function GlobalSearch() {
                   <button
                     key={test._id}
                     onClick={() => { router.push(`/booking?test=${test._id}`); setIsOpen(false); setQuery('') }}
-                    className={`w-full flex items-center justify-between px-5 py-3.5 text-left transition-colors ${
-                      selectedIndex === i ? 'bg-[#1BAE9A]/5' : 'hover:bg-gray-50'
-                    }`}
+                    className={`flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors duration-150 ${selectedIndex === i ? 'bg-[#1BAE9A]/5' : 'hover:bg-gray-50'}`}
                   >
                     <div>
                       <p className="text-sm font-medium text-gray-800">{test.name}</p>
-                      <p className="text-xs text-gray-400 capitalize">{test.category}</p>
+                      <p className="text-xs capitalize text-gray-400">{test.category}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-[#1BAE9A]">
-                        ₹{test.discountPrice || test.price}
-                      </span>
-                      <ArrowRight className="w-4 h-4 text-gray-300" />
+                      <span className="text-sm font-semibold text-[#1BAE9A]">Rs. {displayPrice(test)}</span>
+                      <ArrowRight className="h-4 w-4 text-gray-300" />
                     </div>
                   </button>
                 ))
               ) : query.trim() ? (
                 <div className="flex flex-col items-center py-8 text-center">
-                  <Search className="w-10 h-10 text-gray-200 mb-2" />
+                  <Search className="mb-2 h-10 w-10 text-gray-200" />
                   <p className="text-sm text-gray-400">No tests found for &ldquo;{query}&rdquo;</p>
-                  <p className="text-xs text-gray-300 mt-1">Try a different search term</p>
+                  <p className="mt-1 text-xs text-gray-300">Try a different search term</p>
                 </div>
               ) : null}
             </div>
 
             {results.length > 0 && (
-              <div className="p-3 border-t border-gray-100 flex items-center justify-between">
+              <div className="flex items-center justify-between border-t border-gray-100 p-3">
                 <span className="text-xs text-gray-400">{results.length} results</span>
                 <button
                   onClick={() => { router.push(`/tests?search=${encodeURIComponent(query)}`); setIsOpen(false) }}

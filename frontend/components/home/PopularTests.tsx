@@ -47,20 +47,31 @@ export default function PopularTests() {
   }, [])
 
   return (
-    <section className="bg-white px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16" id="popular-tests">
+    <section className="bg-white px-4 py-[30px] sm:px-6 sm:py-10 lg:px-8 lg:py-[60px]" id="popular-tests">
       <div ref={sectionRef} className="mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.25 }}
-          className="mb-6 text-center sm:mb-8"
+          className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between"
         >
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#CFFAFE] bg-[#F0FDFA] px-3 py-1.5 text-sm font-medium text-[#0F766E]">
-            <Sparkles className="h-4 w-4" />
-            Most Popular
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#CFFAFE] bg-[#F0FDFA] px-3 py-1.5 text-sm font-medium text-[#0F766E]">
+              <Sparkles className="h-4 w-4" />
+              Most Popular
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">Popular Tests</h2>
+            <p className="mt-2 text-base text-gray-600">Frequently booked diagnostic services</p>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">Popular Tests</h2>
-          <p className="mt-2 text-base text-gray-600">Frequently booked diagnostic services</p>
+
+          <button
+            type="button"
+            onClick={() => router.push('/tests')}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0F766E] transition-colors duration-150 hover:text-[#14B8A6]"
+          >
+            View All
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </motion.div>
 
         {loading ? (

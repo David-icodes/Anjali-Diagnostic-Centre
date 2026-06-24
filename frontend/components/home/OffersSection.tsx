@@ -51,20 +51,31 @@ export default function OffersSection() {
   }
 
   return (
-    <section className="bg-[#F8FAFC] px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16" id="offers">
+    <section className="bg-[#F8FAFC] px-4 py-[30px] sm:px-6 sm:py-10 lg:px-8 lg:py-[60px]" id="offers">
       <div ref={sectionRef} className="mx-auto max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.25 }}
-          className="mb-6 text-center sm:mb-8"
+          className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-end sm:justify-between"
         >
-          <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#FDE7B0] bg-[#FFF7E6] px-3 py-1.5 text-sm font-medium text-[#B45309]">
-            <Sparkles className="h-4 w-4" />
-            Special Offers
+          <div>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-[#FDE7B0] bg-[#FFF7E6] px-3 py-1.5 text-sm font-medium text-[#B45309]">
+              <Sparkles className="h-4 w-4" />
+              Special Offers
+            </div>
+            <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">Diagnostic Savings</h2>
+            <p className="mt-2 text-base text-[#0F766E]">Book Today & Save More</p>
           </div>
-          <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">Diagnostic Savings</h2>
-          <p className="mt-2 text-base text-[#0F766E]">Book Today & Save More</p>
+
+          <button
+            type="button"
+            onClick={() => router.push('/tests')}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0F766E] transition-colors duration-150 hover:text-[#14B8A6]"
+          >
+            View All
+            <ArrowRight className="h-4 w-4" />
+          </button>
         </motion.div>
 
         {loading ? (
@@ -87,7 +98,7 @@ export default function OffersSection() {
                   className="group flex h-[290px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-150 hover:-translate-y-[3px] hover:shadow-lg"
                 >
                   <div className="relative h-[130px] overflow-hidden bg-gradient-to-br from-[#E6FFFB] to-[#F8FAFC] px-4 py-3">
-                    <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+                    <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2">
                       <Badge variant="warning" className="rounded-full px-2.5 py-1 text-xs font-semibold">{badgeText}</Badge>
                       <Badge variant="info" className="rounded-full px-2.5 py-1 text-xs">{offer.category}</Badge>
                     </div>

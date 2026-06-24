@@ -4,35 +4,17 @@ import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from 'framer-motion'
-import { Menu, ChevronDown, FlaskRoundIcon as Flask, Scan, CalendarPlus } from 'lucide-react'
+import { motion, useScroll, useMotionValueEvent } from 'framer-motion'
+import { Menu, Phone, Search as SearchIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import MobileNav from './MobileNav'
 import { BRAND } from '@/lib/site'
+import GlobalSearch from '@/components/home/GlobalSearch'
 
-const dropdownItems = [
-  { href: '/tests', label: 'Laboratory Services', icon: Flask },
-  { href: '/radiology', label: 'Radiology Services', icon: Scan },
-]
-
-const navItems = [
+const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About Us' },
-]
-
-const navItemsRight = [
-  { href: '/health-packages', label: 'Health Packages' },
-  { href: '/find-a-centre', label: 'Find a Centre' },
-  { href: '/track-order', label: 'Download Report' },
-  { href: '/contact', label: 'Contact' },
-]
-
-const mobileNavLinks = [
-  { href: '/', label: 'Home' },
-  { href: '/about', label: 'About Us' },
-  { href: '/tests', label: 'Laboratory Services' },
-  { href: '/radiology', label: 'Radiology Services' },
+  { href: '/tests', label: 'Services' },
   { href: '/health-packages', label: 'Health Packages' },
   { href: '/find-a-centre', label: 'Find a Centre' },
   { href: '/track-order', label: 'Download Report' },
@@ -44,9 +26,8 @@ export default function MainNavigation() {
   const [hidden, setHidden] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-  const dropdownRef = useRef<HTMLDivElement>(null)
   const { scrollY } = useScroll()
+  const searchAnchorRef = useRef<HTMLDivElement>(null)
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
     const prev = scrollY.getPrevious() ?? 0
@@ -56,11 +37,14 @@ export default function MainNavigation() {
   })
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setDropdownOpen(false)
+    const handleSearchScroll = () => {
+      const target = searchAnchorRef.current
+      if (!target) return
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' })
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+
+    window.addEventListener('focus-header-search', handleSearchScroll)
+    return () => window.removeEventListener('focus-header-search', handleSearchScroll)
   }, [])
 
   return (
@@ -68,106 +52,94 @@ export default function MainNavigation() {
       <motion.header
         variants={{ visible: { y: 0 }, hidden: { y: '-100%' } }}
         animate={hidden ? 'hidden' : 'visible'}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        transition={{ duration: 0.2, ease: 'easeInOut' }}
         className={cn(
-          'sticky top-0 z-50 border-b border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.94)_0%,rgba(237,248,255,0.88)_100%)] backdrop-blur-xl transition-all duration-300',
-          scrolled ? 'shadow-[0_18px_45px_rgba(15,118,110,0.12)]' : 'shadow-[0_8px_24px_rgba(15,118,110,0.06)]'
+          'sticky top-0 z-50 border-b border-[#DCEFEB] bg-white/95 backdrop-blur-xl transition-all duration-150',
+          scrolled ? 'shadow-[0_16px_34px_rgba(15,118,110,0.10)]' : 'shadow-[0_8px_20px_rgba(15,118,110,0.05)]'
         )}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-[74px] items-center justify-between lg:h-[82px]">
-            <Link href="/" className="flex items-center gap-2.5 group shrink-0">
-              <div className="relative h-11 w-11 overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-[0_10px_25px_rgba(15,118,110,0.12)] backdrop-blur-sm transition-all group-hover:scale-[1.02] group-hover:shadow-[0_16px_32px_rgba(15,118,110,0.16)]">
-                <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-1.5" sizes="48px" />
-              </div>
-              <div>
-                <p className="text-lg font-extrabold tracking-[0.01em] text-gray-900 leading-tight sm:text-xl">{BRAND.name}</p>
-                <p className="text-[10px] text-[#0F9A88] font-semibold uppercase tracking-[0.24em] leading-tight -mt-0.5">Diagnostic Centre</p>
-              </div>
-            </Link>
-
-            <nav className="hidden flex-1 items-center justify-center lg:flex">
-              <div className="flex items-center gap-1 rounded-full border border-white/80 bg-white/60 px-2 py-2 shadow-[0_12px_28px_rgba(15,118,110,0.08)] backdrop-blur-md">
-              {navItems.map((link) => {
-                const isActive = pathname === link.href
-                return (
-                  <Link key={link.href} href={link.href}
-                    className={cn(
-                      'relative rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                      isActive ? 'bg-[#E8F8F5] text-[#0F9A88] shadow-sm' : 'text-gray-700 hover:bg-[#F3FBF8] hover:text-[#0F9A88]'
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                )
-              })}
-
-              <div ref={dropdownRef} className="relative">
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className={cn(
-                    'flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                    pathname === '/tests' || pathname === '/radiology' ? 'bg-[#E8F8F5] text-[#0F9A88] shadow-sm' : 'text-gray-700 hover:bg-[#F3FBF8] hover:text-[#0F9A88]'
-                  )}
-                >
-                  Services
-                  <ChevronDown className={cn('w-4 h-4 transition-transform', dropdownOpen && 'rotate-180')} />
-                </button>
-                <AnimatePresence>
-                  {dropdownOpen && (
-                    <motion.div initial={{ opacity: 0, y: 8, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                      transition={{ duration: 0.15 }}
-                      className="absolute left-0 top-full z-50 mt-3 w-56 overflow-hidden rounded-2xl border border-white/80 bg-white/90 shadow-[0_24px_50px_rgba(15,118,110,0.14)] backdrop-blur-xl"
-                    >
-                      {dropdownItems.map((item) => (
-                        <Link key={item.href} href={item.href} onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 transition-colors hover:bg-[#F3FBF8] hover:text-[#0F9A88]">
-                          <item.icon className="w-4 h-4 text-[#0F9A88]" />
-                          {item.label}
-                        </Link>
-                      ))}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {navItemsRight.map((link) => {
-                const isActive = pathname === link.href
-                return (
-                  <Link key={link.href} href={link.href}
-                    className={cn(
-                      'relative rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
-                      isActive ? 'bg-[#E8F8F5] text-[#0F9A88] shadow-sm' : 'text-gray-700 hover:bg-[#F3FBF8] hover:text-[#0F9A88]'
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                )
-              })}
-              </div>
-            </nav>
-
-            <div className="flex items-center gap-3">
-              <Link href="/booking">
-                <Button className="hidden h-11 rounded-full bg-gradient-to-r from-[#14B8A6] via-[#22C1A6] to-[#78D96B] px-5 text-sm font-semibold text-white shadow-[0_16px_34px_rgba(20,184,166,0.28)] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_20px_40px_rgba(20,184,166,0.34)] sm:flex">
-                  <CalendarPlus className="mr-2 h-4 w-4" />
-                  Book a Test
-                </Button>
+        <div className="border-b border-[#E7F2EF] bg-[#F8FAFC]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col gap-4 py-4 lg:flex-row lg:items-center lg:justify-between lg:gap-6">
+              <Link href="/" className="flex items-center gap-3 shrink-0">
+                <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-[#DCEFEB] bg-white shadow-sm">
+                  <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-1.5" sizes="48px" />
+                </div>
+                <div>
+                  <p className="text-lg font-bold leading-tight text-gray-900 sm:text-xl">Anjali Diagnostics Centre</p>
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#0F766E]">Accurate Diagnostic Care</p>
+                </div>
               </Link>
+
+              <div ref={searchAnchorRef} className="flex-1 lg:max-w-2xl">
+                <GlobalSearch
+                  compact
+                  placeholder="Search for tests and health checkups"
+                />
+              </div>
+
+              <div className="hidden shrink-0 items-center gap-3 rounded-2xl border border-[#DCEFEB] bg-white px-4 py-3 shadow-sm sm:flex">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8F8F5] text-[#14B8A6]">
+                  <Phone className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.16em] text-gray-400">Call Us</p>
+                  <a href="tel:9989220938" className="text-base font-semibold text-[#0F766E]">9989220938</a>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 sm:hidden">
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new Event('focus-header-search'))}
+                  className="flex items-center gap-2 rounded-full border border-[#DCEFEB] bg-white px-4 py-2 text-sm font-medium text-[#0F766E] shadow-sm"
+                >
+                  <SearchIcon className="h-4 w-4" />
+                  Search
+                </button>
+                <a href="tel:9989220938" className="flex items-center gap-2 rounded-full border border-[#DCEFEB] bg-white px-4 py-2 text-sm font-semibold text-[#0F766E] shadow-sm">
+                  <Phone className="h-4 w-4" />
+                  9989220938
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#0F766E]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex h-12 items-center justify-between gap-4">
+              <nav className="hidden flex-1 items-center justify-center gap-1 lg:flex">
+                {navLinks.map((link) => {
+                  const isActive = pathname === link.href
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        'rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150',
+                        isActive ? 'bg-white text-[#0F766E]' : 'text-white hover:bg-white/10'
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                })}
+              </nav>
 
               <button
                 onClick={() => setMobileOpen(true)}
-                className="rounded-full border border-white/80 bg-white/70 p-2.5 text-gray-700 shadow-sm transition-all hover:bg-[#F3FBF8] hover:text-[#0F9A88] lg:hidden"
+                className="ml-auto rounded-full border border-white/20 bg-white/10 p-2 text-white transition-colors duration-150 hover:bg-white/20 lg:hidden"
                 aria-label="Open menu"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="h-5 w-5" />
               </button>
             </div>
           </div>
         </div>
       </motion.header>
 
-      <MobileNav isOpen={mobileOpen} onClose={() => setMobileOpen(false)} navLinks={mobileNavLinks} />
+      <MobileNav isOpen={mobileOpen} onClose={() => setMobileOpen(false)} navLinks={navLinks} />
     </>
   )
 }
