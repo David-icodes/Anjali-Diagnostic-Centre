@@ -1,212 +1,247 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Sparkles, ChevronDown, Check, Truck, Building2, ArrowRight, Shield, Activity, Droplets, Thermometer, Heart, FlaskRoundIcon as Flask, Brain } from 'lucide-react'
+import { Sparkles, ChevronDown, Check, Truck, Building2, ArrowRight, Shield, Activity, HeartPulse, ScanLine, Star, BadgePercent } from 'lucide-react'
 import Footer from '@/components/layout/Footer'
 import PageTransition from '@/components/layout/PageTransition'
 import { Button } from '@/components/ui/button'
+import { formatPrice } from '@/lib/utils'
 import api from '@/lib/api'
 
 const iconMap: Record<string, any> = {
-  'Shield': Shield,
-  'Activity': Activity,
-  'Droplets': Droplets,
-  'Thermometer': Thermometer,
-  'Heart': Heart,
-  'Flask': Flask,
-  'Brain': Brain,
+  heart: HeartPulse,
+  cardiac: HeartPulse,
+  sugar: Activity,
+  diabetes: Activity,
+  scan: ScanLine,
+  xray: ScanLine,
+  'x-ray': ScanLine,
 }
 
-function getIcon(name: string) {
-  for (const [key, icon] of Object.entries(iconMap)) {
-    if (name.toLowerCase().includes(key.toLowerCase())) return icon
+function getPackageIcon(name: string) {
+  const normalized = name.toLowerCase()
+  const entry = Object.entries(iconMap).find(([key]) => normalized.includes(key))
+  return entry ? entry[1] : Shield
+}
+
+function getArrayFromResponse(payload: any, keys: string[]) {
+  for (const key of keys) {
+    if (Array.isArray(payload?.[key])) return payload[key]
   }
-  return Activity
+  return Array.isArray(payload) ? payload : []
+}
+
+function hasValidOffer(pkg: any) {
+  return !!pkg.hasOffer && pkg.offerPrice > 0 && pkg.offerPrice < pkg.originalPrice
+}
+
+function getDiscount(pkg: any) {
+  if (pkg.discountPercentage) return pkg.discountPercentage
+  if (!hasValidOffer(pkg)) return 0
+  return Math.round(((pkg.originalPrice - pkg.offerPrice) / pkg.originalPrice) * 100)
 }
 
 export default function HealthPackagesPage() {
   const [packages, setPackages] = useState<any[]>([])
+  const [labTests, setLabTests] = useState<string[]>([])
+  const [radiologyServices, setRadiologyServices] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedPkg, setExpandedPkg] = useState<string | null>(null)
 
   useEffect(() => {
-    api.get('/health-packages?isActive=true')
-      .then(res => {
-        const data = res.data?.packages || res.data || []
-        setPackages(Array.isArray(data) ? data : [])
+    Promise.all([
+      api.get('/health-packages', { params: { isActive: true } }),
+      api.get('/tests', { params: { limit: 250 } }),
+      api.get('/radiology', { params: { limit: 250 } }),
+    ])
+      .then(([packagesRes, testsRes, radiologyRes]) => {
+        const packageData = getArrayFromResponse(packagesRes.data, ['packages'])
+        const testsData = getArrayFromResponse(testsRes.data, ['tests'])
+        const radiologyData = getArrayFromResponse(radiologyRes.data, ['services', 'radiologyServices'])
+
+        setPackages(packageData)
+        setLabTests(testsData.map((test: any) => test.name.toLowerCase()))
+        setRadiologyServices(radiologyData.map((service: any) => service.name.toLowerCase()))
       })
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
-  const discountPercent = (original: number, offer: number) => {
-    if (!original || !offer) return 0
-    return Math.round(((original - offer) / original) * 100)
-  }
+  const classifyIncludedItems = useMemo(() => {
+    return packages.reduce((acc, pkg) => {
+      const items = Array.isArray(pkg.includedTests) ? pkg.includedTests : []
+      const grouped = items.reduce(
+        (result: { laboratory: string[]; radiology: string[] }, item: string) => {
+          const normalized = item.toLowerCase()
+          if (radiologyServices.includes(normalized)) result.radiology.push(item)
+          else result.laboratory.push(item)
+          return result
+        },
+        { laboratory: [], radiology: [] }
+      )
+      acc[pkg._id] = grouped
+      return acc
+    }, {} as Record<string, { laboratory: string[]; radiology: string[] }>)
+  }, [packages, radiologyServices])
 
   return (
     <>
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-[#F8FAFC]">
         <PageTransition>
-          <section className="relative flex min-h-[30vh] items-center overflow-hidden bg-gradient-to-br from-[#1BAE9A] to-[#00C2A8]">
-            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />
-            <div className="absolute right-0 top-0 h-[400px] w-[400px] rounded-full bg-white/10 blur-[80px]" />
-            <div className="relative mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-                <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-white/90">
+          <section className="relative overflow-hidden bg-gradient-to-br from-[#0F766E] via-[#14B8A6] to-[#2DD4BF]">
+            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.04]" />
+            <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-16">
+              <div className="max-w-3xl">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
                   <Sparkles className="h-4 w-4" /> Health Packages
                 </div>
-                <h1 className="mb-4 text-4xl font-bold leading-tight text-white sm:text-5xl">
-                  Health Checkup Packages
-                </h1>
-                <p className="mx-auto max-w-xl text-lg text-white/80">
-                  Curated health packages for comprehensive wellness
-                </p>
-              </motion.div>
+                <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">Preventive health packages designed for accurate, convenient care</h1>
+                <p className="mt-4 max-w-2xl text-base text-white/80 sm:text-lg">Explore clean, clearly priced health checkup packages with home collection and lab visit options based on your needs.</p>
+              </div>
             </div>
           </section>
 
-          <section className="bg-[#F8FBFC] py-16">
-            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <section className="py-10 sm:py-12 lg:py-14">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               {loading ? (
-                <div className="space-y-6">
-                  {Array.from({ length: 2 }).map((_, i) => (
-                    <div key={i} className="animate-pulse overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-gray-100/50">
-                      <div className="grid md:grid-cols-3">
-                        <div className="h-64 bg-gray-100" />
-                        <div className="space-y-4 p-8 md:col-span-2">
-                          <div className="h-6 w-1/3 rounded bg-gray-100" />
-                          <div className="h-4 w-full rounded bg-gray-100" />
-                          <div className="h-4 w-2/3 rounded bg-gray-100" />
-                        </div>
-                      </div>
-                    </div>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  {Array.from({ length: 4 }).map((_, index) => (
+                    <div key={index} className="h-80 animate-pulse rounded-[24px] border border-slate-200 bg-white" />
                   ))}
                 </div>
               ) : packages.length === 0 ? (
-                <div className="py-20 text-center">
-                  <p className="text-lg text-gray-400">No health packages available at the moment.</p>
+                <div className="rounded-[24px] border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
+                  <p className="text-lg text-slate-500">No health packages available at the moment.</p>
                 </div>
               ) : (
-                packages.map((pkg, i) => {
-                  const isExpanded = expandedPkg === pkg._id
-                  const Icon = getIcon(pkg.name)
-                  const discount = pkg.discountPercentage || discountPercent(pkg.originalPrice, pkg.offerPrice)
-                  const tests = pkg.includedTests || []
-                  return (
-                    <motion.div
-                      key={pkg._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      className="mb-6 overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-xl shadow-gray-100/50"
-                    >
-                      <div className="grid gap-0 md:grid-cols-3">
-                        <div className="flex flex-col justify-between bg-gradient-to-br from-[#1BAE9A] to-[#00C2A8] p-8 text-white md:col-span-1">
-                          <div>
-                            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-white/20">
-                              <Icon className="h-7 w-7" />
-                            </div>
-                            <h2 className="mb-2 text-2xl font-bold">{pkg.name}</h2>
-                            <p className="mb-4 text-sm text-white/80">{pkg.description}</p>
-                            <div className="mb-2 flex items-center gap-2">
-                              {pkg.benefits?.length > 0 && (
-                                <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium">
-                                  {pkg.benefits.length} Benefits
-                                </span>
-                              )}
-                              {discount > 0 && (
-                                <span className="rounded-full bg-[#4CAF50] px-3 py-1 text-xs font-bold">
-                                  {discount}% OFF
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="mt-6">
-                            <div className="mb-2 flex items-baseline gap-2">
-                              <span className="text-3xl font-bold">?{(pkg.offerPrice || 0).toLocaleString('en-IN')}</span>
-                              {pkg.originalPrice > pkg.offerPrice && (
-                                <span className="text-sm text-white/60 line-through">?{(pkg.originalPrice || 0).toLocaleString('en-IN')}</span>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-white/80">
-                              {pkg.homeCollectionAvailable && (
-                                <span className="flex items-center gap-1"><Truck className="h-3.5 w-3.5" /> Home Collection</span>
-                              )}
-                              <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5" /> Lab Visit</span>
-                            </div>
-                          </div>
-                        </div>
+                <div className="grid gap-6 lg:grid-cols-2">
+                  {packages.map((pkg, index) => {
+                    const Icon = getPackageIcon(pkg.name)
+                    const grouped = classifyIncludedItems[pkg._id] || { laboratory: [], radiology: [] }
+                    const includedCount = (pkg.includedTests || []).length
+                    const expanded = expandedPkg === pkg._id
+                    const hasOffer = hasValidOffer(pkg)
+                    const discount = getDiscount(pkg)
+                    const priceToShow = hasOffer ? pkg.offerPrice : pkg.originalPrice
+                    const offerText = pkg.offerText || (discount > 0 ? `${discount}% OFF` : '')
 
-                        <div className="p-8 md:col-span-2">
-                          {tests.length > 0 && (
-                            <>
-                              <h3 className="mb-4 text-lg font-semibold text-gray-900">Tests Included ({tests.length})</h3>
-                              <div className="mb-6 grid gap-3 sm:grid-cols-2">
-                                {tests.map((test: string, j: number) => (
-                                  <div key={j} className="flex items-center gap-3 text-sm text-gray-600">
-                                    <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1BAE9A]/10">
-                                      <Check className="h-3.5 w-3.5 text-[#1BAE9A]" />
-                                    </div>
-                                    <span>{test}</span>
-                                  </div>
-                                ))}
+                    return (
+                      <motion.article
+                        key={pkg._id}
+                        initial={{ opacity: 0, y: 18 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.2, delay: index * 0.03 }}
+                        className="overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_14px_34px_rgba(15,118,110,0.08)]"
+                      >
+                        <div className="flex h-full flex-col p-6 sm:p-7">
+                          <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div className="flex min-w-0 items-start gap-4">
+                              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#E8F8F5] text-[#0F766E]">
+                                <Icon className="h-7 w-7" />
                               </div>
-                            </>
-                          )}
+                              <div className="min-w-0">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h2 className="text-2xl font-bold leading-tight text-slate-900">{pkg.name}</h2>
+                                  {pkg.isPopular ? (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-[#DCFCE7] px-3 py-1 text-xs font-semibold text-[#15803D]">
+                                      <Star className="h-3.5 w-3.5" /> POPULAR
+                                    </span>
+                                  ) : null}
+                                  {hasOffer && offerText ? (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-[#FEF3C7] px-3 py-1 text-xs font-semibold text-[#B45309]">
+                                      <BadgePercent className="h-3.5 w-3.5" /> {offerText}
+                                    </span>
+                                  ) : null}
+                                </div>
+                                <p className="mt-2 text-sm leading-6 text-slate-600">{pkg.description}</p>
+                                <p className="mt-3 text-sm font-medium text-[#0F766E]">Parameters Covered {includedCount}</p>
+                              </div>
+                            </div>
 
-                          <div className="flex flex-wrap gap-3">
-                            <Link href="/booking">
-                              <Button size="lg" className="bg-[#1BAE9A] text-white shadow-lg shadow-[#1BAE9A]/25 hover:bg-[#168E7E]">
-                                Book Package
-                                <ArrowRight className="ml-2 h-5 w-5" />
+                            <div className="rounded-2xl bg-[#F8FAFC] px-4 py-3 text-right">
+                              {hasOffer ? <p className="text-sm text-slate-400 line-through">{formatPrice(pkg.originalPrice)}</p> : null}
+                              <p className="text-3xl font-bold text-slate-900">{formatPrice(priceToShow)}</p>
+                            </div>
+                          </div>
+
+                          <div className="mt-5 flex flex-wrap gap-2">
+                            {pkg.homeCollectionAvailable ? <span className="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"><Truck className="h-3.5 w-3.5" /> Home Collection</span> : null}
+                            {pkg.labVisitAvailable ? <span className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-sky-50 px-3 py-1.5 text-xs font-medium text-sky-700"><Building2 className="h-3.5 w-3.5" /> Lab Visit</span> : null}
+                          </div>
+
+                          <div className="mt-6 flex flex-wrap gap-3">
+                            <Link href={`/booking?package=${pkg._id}`}>
+                              <Button className="h-11 rounded-full bg-[#14B8A6] px-6 text-white hover:bg-[#0F9E90]">
+                                Book Now
+                                <ArrowRight className="ml-2 h-4 w-4" />
                               </Button>
                             </Link>
-                            {tests.length > 0 && (
+                            {includedCount > 0 ? (
                               <button
-                                onClick={() => setExpandedPkg(isExpanded ? null : pkg._id)}
-                                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 px-5 py-3 text-sm font-medium text-gray-600 transition-all hover:border-[#1BAE9A]/30 hover:text-[#1BAE9A]"
+                                type="button"
+                                onClick={() => setExpandedPkg(expanded ? null : pkg._id)}
+                                className="inline-flex h-11 items-center gap-2 rounded-full border border-slate-200 px-5 text-sm font-semibold text-slate-700 transition hover:border-[#14B8A6] hover:text-[#0F766E]"
                               >
-                                <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-                                {isExpanded ? 'Show Less' : 'View Details'}
+                                View Details
+                                <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
                               </button>
-                            )}
+                            ) : null}
                           </div>
 
-                          {pkg.benefits?.length > 0 && (
-                            <AnimatePresence>
-                              {isExpanded && (
-                                <motion.div
-                                  initial={{ height: 0, opacity: 0 }}
-                                  animate={{ height: 'auto', opacity: 1 }}
-                                  exit={{ height: 0, opacity: 0 }}
-                                  transition={{ duration: 0.3 }}
-                                  className="overflow-hidden"
-                                >
-                                  <div className="mt-6 border-t border-gray-100 pt-6">
-                                    <h4 className="mb-3 font-medium text-gray-900">Benefits</h4>
-                                    <div className="space-y-3">
-                                      {pkg.benefits.map((benefit: string, j: number) => (
-                                        <div key={j} className="flex items-start gap-3">
-                                          <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1BAE9A]/10">
-                                            <Check className="h-3.5 w-3.5 text-[#1BAE9A]" />
-                                          </div>
-                                          <p className="text-sm text-gray-600">{benefit}</p>
+                          <AnimatePresence initial={false}>
+                            {expanded ? (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="mt-6 rounded-[20px] border border-slate-200 bg-[#FCFDFD] p-5">
+                                  <h3 className="text-2xl font-bold text-slate-900">Tests / Parameters</h3>
+                                  <div className="mt-5 grid gap-6 lg:grid-cols-2">
+                                    <div>
+                                      <h4 className="mb-3 text-lg font-semibold text-slate-900">Laboratory Tests</h4>
+                                      {grouped.laboratory.length > 0 ? (
+                                        <div className="space-y-3">
+                                          {grouped.laboratory.map((item: string) => (
+                                            <div key={item} className="flex items-start gap-3 text-sm text-slate-700">
+                                              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#E8F8F5] text-[#0F766E]">
+                                                <Check className="h-3.5 w-3.5" />
+                                              </span>
+                                              <span>{item}</span>
+                                            </div>
+                                          ))}
                                         </div>
-                                      ))}
+                                      ) : <p className="text-sm text-slate-500">No laboratory tests listed in this package.</p>}
+                                    </div>
+                                    <div>
+                                      <h4 className="mb-3 text-lg font-semibold text-slate-900">Radiology Tests</h4>
+                                      {grouped.radiology.length > 0 ? (
+                                        <div className="space-y-3">
+                                          {grouped.radiology.map((item: string) => (
+                                            <div key={item} className="flex items-start gap-3 text-sm text-slate-700">
+                                              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+                                                <Check className="h-3.5 w-3.5" />
+                                              </span>
+                                              <span>{item}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ) : <p className="text-sm text-slate-500">No radiology tests listed in this package.</p>}
                                     </div>
                                   </div>
-                                </motion.div>
-                              )}
-                            </AnimatePresence>
-                          )}
+                                </div>
+                              </motion.div>
+                            ) : null}
+                          </AnimatePresence>
                         </div>
-                      </div>
-                    </motion.div>
-                  )
-                })
+                      </motion.article>
+                    )
+                  })}
+                </div>
               )}
             </div>
           </section>
@@ -216,3 +251,5 @@ export default function HealthPackagesPage() {
     </>
   )
 }
+
+
