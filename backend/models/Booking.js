@@ -28,7 +28,6 @@ const bookingSchema = mongoose.Schema(
     mobileNumber: {
       type: String,
       required: true,
-      match: [/^\d{10}$/, 'Mobile number must be exactly 10 digits'],
     },
     email: {
       type: String,
@@ -41,7 +40,7 @@ const bookingSchema = mongoose.Schema(
     },
     serviceType: {
       type: String,
-      enum: ['Laboratory', 'Radiology', 'Health Package', 'Multiple Services'],
+      enum: ['Laboratory', 'Radiology', 'Health Package'],
       default: 'Laboratory',
     },
     serviceName: {
@@ -49,6 +48,18 @@ const bookingSchema = mongoose.Schema(
       default: '',
     },
     servicePrice: {
+      type: Number,
+      default: 0,
+    },
+    selectedServices: [
+      {
+        serviceType: { type: String, default: '' },
+        serviceId: { type: String, default: '' },
+        name: { type: String, default: '' },
+        price: { type: Number, default: 0 },
+      },
+    ],
+    totalAmount: {
       type: Number,
       default: 0,
     },
@@ -68,31 +79,6 @@ const bookingSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
-    selectedServices: [
-      {
-        serviceType: {
-          type: String,
-          enum: ['Laboratory', 'Radiology', 'Health Package'],
-          required: true,
-        },
-        serviceId: {
-          type: mongoose.Schema.Types.ObjectId,
-          required: true,
-        },
-        name: {
-          type: String,
-          required: true,
-        },
-        price: {
-          type: Number,
-          required: true,
-        },
-        category: {
-          type: String,
-          default: '',
-        },
-      },
-    ],
     preferredDate: {
       type: Date,
       required: true,

@@ -71,24 +71,38 @@ app.use(morgan('dev'));
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { message: 'Too many attempts, please try again later.' },
+  max: 25,
+  message: { message: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-app.use('/api/auth/login', authLimiter);
+const enquiryLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 40,
+  message: { message: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const bookingLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 80,
+  message: { message: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Anjali Diagnostic Centre API is running' });
 });
 
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/tests', testRoutes);
-app.use('/api/bookings', bookingRoutes);
+app.use('/api/bookings', bookingLimiter, bookingRoutes);
 app.use('/api/offers', offerRoutes);
 app.use('/api/testimonials', testimonialRoutes);
-app.use('/api/enquiries', enquiryRoutes);
+app.use('/api/enquiries', enquiryLimiter, enquiryRoutes);
 app.use('/api/settings', settingRoutes);
 app.use('/api/radiology', radiologyRoutes);
 app.use('/api/health-packages', healthPackageRoutes);

@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { Menu } from 'lucide-react'
+import { Menu, ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import MobileNav from './MobileNav'
 import { BRAND } from '@/lib/site'
@@ -13,11 +13,17 @@ import GlobalSearch from '@/components/home/GlobalSearch'
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/about', label: 'About Us' },
-  { href: '/tests', label: 'Services' },
+  { href: '/tests', label: 'Laboratory Services' },
+  { href: '/radiology', label: 'Radiology Services' },
   { href: '/health-packages', label: 'Health Packages' },
   { href: '/find-a-centre', label: 'Find a Centre' },
   { href: '/track-order', label: 'Download Report' },
   { href: '/contact', label: 'Contact' },
+]
+
+const serviceLinks = [
+  { href: '/tests', label: 'Laboratory Services' },
+  { href: '/radiology', label: 'Radiology Services' },
 ]
 
 const WHATSAPP_LINK = 'https://wa.me/919440626892'
@@ -113,22 +119,63 @@ export default function MainNavigation() {
 
         <div className="bg-[#0F766E]">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="hidden h-12 items-center justify-center gap-1 lg:flex">
-              {navLinks.map((link) => {
-                const isActive = pathname === link.href
-                return (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={cn(
-                      'rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150',
-                      isActive ? 'bg-white text-[#0F766E]' : 'text-white hover:bg-white/10'
-                    )}
-                  >
-                    {link.label}
-                  </Link>
-                )
-              })}
+            <div className="hidden h-12 items-center justify-between gap-1 lg:flex">
+              <div className="flex items-center gap-1">
+                {navLinks.slice(0, 2).map((link) => {
+                  const isActive = pathname === link.href
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        'rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150',
+                        isActive ? 'bg-white text-[#0F766E]' : 'text-white hover:bg-white/10'
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                })}
+                <div className="relative group">
+                  <span className="inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors duration-150">
+                    Services <ChevronDown className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="absolute top-full left-0 mt-1 w-56 rounded-xl border border-gray-100 bg-white shadow-lg shadow-gray-200/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                    {serviceLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={cn(
+                          'block px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-[#F0FDFA] hover:text-[#0F766E] first:rounded-t-xl last:rounded-b-xl',
+                          pathname === link.href ? 'bg-[#F0FDFA] text-[#0F766E]' : ''
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                {navLinks.slice(4).map((link) => {
+                  const isActive = pathname === link.href
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        'rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150',
+                        isActive ? 'bg-white text-[#0F766E]' : 'text-white hover:bg-white/10'
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                })}
+              </div>
+              <Link href="/booking">
+                <span className="inline-flex items-center rounded-full bg-white px-5 py-1.5 text-sm font-bold text-[#0F766E] shadow-sm hover:bg-[#E8F8F5] transition-colors duration-150">
+                  BOOK A TEST
+                </span>
+              </Link>
             </div>
           </div>
         </div>

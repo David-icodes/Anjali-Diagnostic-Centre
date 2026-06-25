@@ -17,7 +17,7 @@ const normalizeOfferState = (payload = {}) => {
     ...payload,
     category: payload.category || 'Other',
     originalPrice,
-    offerPrice: hasOffer && requestedOfferPrice > 0 && requestedOfferPrice < originalPrice ? requestedOfferPrice : 0,
+    offerPrice: hasOffer ? requestedOfferPrice : 0,
     hasOffer,
     offerText,
     offerLabel: hasOffer ? offerText : '',

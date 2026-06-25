@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { FlaskRoundIcon as Flask, Scan, ArrowRight, Droplets, Heart, Activity, Thermometer, Baby } from 'lucide-react'
+import { FlaskRoundIcon as Flask, Scan, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export default function BookTestSection() {
@@ -36,23 +36,7 @@ export default function BookTestSection() {
               <Flask className="h-8 w-8 text-white" />
             </div>
             <h3 className="mb-4 text-2xl font-bold text-gray-900">Laboratory Services</h3>
-            <p className="mb-6 text-gray-500">Comprehensive blood tests, urine analysis, hormone testing and more</p>
-            <ul className="mb-8 space-y-3">
-              {[
-                { icon: Droplets, label: 'Blood Tests' },
-                { icon: Activity, label: 'Urine Tests' },
-                { icon: Thermometer, label: 'Biochemistry' },
-                { icon: Heart, label: 'Hormone Testing' },
-                { icon: Baby, label: 'Diabetes Testing' },
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-gray-600">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1BAE9A]/5">
-                    <item.icon className="h-4 w-4 text-[#1BAE9A]" />
-                  </div>
-                  <span>{item.label}</span>
-                </li>
-              ))}
-            </ul>
+            <p className="mb-6 text-gray-500">Comprehensive blood tests, urine analysis, and biochemistry testing</p>
             <Link href="/tests">
               <Button size="lg" className="group/btn bg-[#1BAE9A] text-white shadow-lg shadow-[#1BAE9A]/25 hover:bg-[#168E7E]">
                 Explore Laboratory Tests
@@ -73,22 +57,6 @@ export default function BookTestSection() {
             </div>
             <h3 className="mb-4 text-2xl font-bold text-gray-900">Radiology Services</h3>
             <p className="mb-6 text-gray-500">Advanced imaging and scanning services with expert radiologists</p>
-            <ul className="mb-8 space-y-3">
-              {[
-                { icon: Scan, label: 'MRI' },
-                { icon: Scan, label: 'CT Scan' },
-                { icon: Scan, label: 'Ultrasound' },
-                { icon: Scan, label: 'Digital X-Ray' },
-                { icon: Scan, label: 'Mammography' },
-              ].map((item, i) => (
-                <li key={i} className="flex items-center gap-3 text-gray-600">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#4CAF50]/5">
-                    <item.icon className="h-4 w-4 text-[#4CAF50]" />
-                  </div>
-                  <span>{item.label}</span>
-                </li>
-              ))}
-            </ul>
             <Link href="/radiology">
               <Button size="lg" className="group/btn bg-[#4CAF50] text-white shadow-lg shadow-[#4CAF50]/25 hover:bg-[#388E3C]">
                 Explore Radiology Services

@@ -52,136 +52,14 @@ const createBookingWithGeneratedId = async (bookingData) => {
   throw new Error('Unable to generate a unique booking ID. Please try again.');
 };
 
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const resolveSingleService = async ({ serviceType, testId, radiologyId, packageId }) => {
-  if (serviceType === 'Laboratory' && testId) {
-    const test = await Test.findById(testId);
-    if (!test) throw { status: 404, message: 'Test not found' };
-
-    return [{
-      serviceType: 'Laboratory',
-      serviceId: test._id,
-      name: test.name,
-      price: test.hasOffer && test.offerPrice > 0 ? test.offerPrice : test.originalPrice,
-      category: test.category || '',
-    }];
-  }
-
-  if (serviceType === 'Radiology' && radiologyId) {
-    const rad = await RadiologyService.findById(radiologyId);
-    if (!rad) throw { status: 404, message: 'Radiology service not found' };
-
-    return [{
-      serviceType: 'Radiology',
-      serviceId: rad._id,
-      name: rad.name,
-      price: rad.price,
-      category: rad.category || '',
-    }];
-  }
-
-  if (serviceType === 'Health Package' && packageId) {
-    const pkg = await HealthPackage.findById(packageId);
-    if (!pkg) throw { status: 404, message: 'Health package not found' };
-
-    return [{
-      serviceType: 'Health Package',
-      serviceId: pkg._id,
-      name: pkg.name,
-      price: pkg.hasOffer && pkg.offerPrice > 0 ? pkg.offerPrice : pkg.originalPrice,
-      category: 'Health Package',
-    }];
-  }
-
-  throw { status: 400, message: 'Invalid service selection' };
-};
-
-const resolveSelectedServices = async (selectedServices = []) => {
-  const resolved = [];
-
-  for (const item of selectedServices) {
-    const serviceType = item?.serviceType;
-    const serviceId = item?.serviceId || item?.id;
-
-    if (!serviceType || !serviceId) {
-      throw { status: 400, message: 'Each selected service must include a service type and service id' };
-    }
-
-    if (serviceType === 'Laboratory') {
-      const test = await Test.findById(serviceId);
-      if (!test) throw { status: 404, message: 'One of the selected tests was not found' };
-      resolved.push({
-        serviceType,
-        serviceId: test._id,
-        name: test.name,
-        price: test.hasOffer && test.offerPrice > 0 ? test.offerPrice : test.originalPrice,
-        category: test.category || '',
-      });
-      continue;
-    }
-
-    if (serviceType === 'Radiology') {
-      const rad = await RadiologyService.findById(serviceId);
-      if (!rad) throw { status: 404, message: 'One of the selected radiology services was not found' };
-      resolved.push({
-        serviceType,
-        serviceId: rad._id,
-        name: rad.name,
-        price: rad.price,
-        category: rad.category || '',
-      });
-      continue;
-    }
-
-    if (serviceType === 'Health Package') {
-      const pkg = await HealthPackage.findById(serviceId);
-      if (!pkg) throw { status: 404, message: 'Selected health package not found' };
-      resolved.push({
-        serviceType,
-        serviceId: pkg._id,
-        name: pkg.name,
-        price: pkg.hasOffer && pkg.offerPrice > 0 ? pkg.offerPrice : pkg.originalPrice,
-        category: 'Health Package',
-      });
-      continue;
-    }
-
-    throw { status: 400, message: 'Unsupported service type in selection' };
-  }
-
-  return resolved;
-};
-
-const buildBookingSummary = (services) => {
-  const totalPrice = services.reduce((sum, item) => sum + Number(item.price || 0), 0);
-  const uniqueTypes = [...new Set(services.map((item) => item.serviceType))];
-  const summaryType = services.length > 1 && uniqueTypes.length > 1
-    ? 'Multiple Services'
-    : uniqueTypes[0] || 'Laboratory';
-  const summaryName = services.length === 1
-    ? services[0].name
-    : `${services.length} services: ${services.map((item) => item.name).join(', ')}`;
-
-  return {
-    serviceType: summaryType,
-    serviceName: summaryName,
-    servicePrice: totalPrice,
-  };
-};
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const mobileRegex = /^\d{10}$/;
 
 const createBooking = async (req, res) => {
   try {
-    const {
-      serviceType,
-      testId,
-      radiologyId,
-      packageId,
-      dob,
-      selectedServices = [],
-      mobileNumber,
-      email,
-    } = req.body;
+    const { serviceType, testId, radiologyId, packageId, dob } = req.body;
+    const selectedTestIds = Array.isArray(req.body.selectedTestIds) ? req.body.selectedTestIds.filter(Boolean) : [];
+    const selectedRadiologyIds = Array.isArray(req.body.selectedRadiologyIds) ? req.body.selectedRadiologyIds.filter(Boolean) : [];
 
     if (!dob) {
       return res.status(400).json({ message: 'Date of birth is required' });
@@ -192,46 +70,96 @@ const createBooking = async (req, res) => {
       return res.status(400).json({ message: 'Invalid date of birth' });
     }
 
-    if (!/^\d{10}$/.test(String(mobileNumber || '').trim())) {
-      return res.status(400).json({ message: 'Mobile number must be exactly 10 digits' });
+    const mobileNumber = String(req.body.mobileNumber || '').trim();
+    if (!mobileRegex.test(mobileNumber)) {
+      return res.status(400).json({ message: 'Mobile number must be exactly 10 digits.' });
     }
 
-    const normalizedEmail = String(email || '').trim();
-    if (normalizedEmail && !emailPattern.test(normalizedEmail)) {
-      return res.status(400).json({ message: 'Invalid email address' });
+    const email = String(req.body.email || '').trim();
+    if (email && !emailRegex.test(email)) {
+      return res.status(400).json({ message: 'Please enter a valid email address.' });
     }
 
-    let resolvedServices = [];
-    if (Array.isArray(selectedServices) && selectedServices.length > 0) {
-      resolvedServices = await resolveSelectedServices(selectedServices);
+    let serviceName = '';
+    let servicePrice = 0;
+    let selectedServices = [];
+    let primaryTestId;
+    let primaryTestName = '';
+    let primaryTestPrice = 0;
+
+    if (serviceType === 'Laboratory') {
+      const ids = [...new Set([...(selectedTestIds.length > 0 ? selectedTestIds : []), ...(testId ? [testId] : [])])];
+      if (ids.length === 0) {
+        return res.status(400).json({ message: 'Please select at least one laboratory test.' });
+      }
+
+      const tests = await Test.find({ _id: { $in: ids } });
+      if (tests.length !== ids.length) {
+        return res.status(404).json({ message: 'One or more selected tests were not found.' });
+      }
+
+      selectedServices = tests.map((test) => ({
+        serviceType: 'Laboratory',
+        serviceId: String(test._id),
+        name: test.name,
+        price: test.offerPrice || test.originalPrice,
+      }));
+      serviceName = tests.map((test) => test.name).join(', ');
+      servicePrice = selectedServices.reduce((sum, item) => sum + item.price, 0);
+      primaryTestId = tests[0]?._id;
+      primaryTestName = serviceName;
+      primaryTestPrice = servicePrice;
+    } else if (serviceType === 'Radiology') {
+      const ids = [...new Set([...(selectedRadiologyIds.length > 0 ? selectedRadiologyIds : []), ...(radiologyId ? [radiologyId] : [])])];
+      if (ids.length === 0) {
+        return res.status(400).json({ message: 'Please select at least one radiology service.' });
+      }
+
+      const radiologyServices = await RadiologyService.find({ _id: { $in: ids } });
+      if (radiologyServices.length !== ids.length) {
+        return res.status(404).json({ message: 'One or more selected radiology services were not found.' });
+      }
+
+      selectedServices = radiologyServices.map((service) => ({
+        serviceType: 'Radiology',
+        serviceId: String(service._id),
+        name: service.name,
+        price: service.price,
+      }));
+      serviceName = radiologyServices.map((service) => service.name).join(', ');
+      servicePrice = selectedServices.reduce((sum, item) => sum + item.price, 0);
+    } else if (serviceType === 'Health Package' && packageId) {
+      const pkg = await HealthPackage.findById(packageId);
+      if (!pkg) return res.status(404).json({ message: 'Health package not found' });
+      serviceName = pkg.name;
+      servicePrice = pkg.offerPrice && pkg.offerPrice > 0 ? pkg.offerPrice : pkg.originalPrice;
+      selectedServices = [{
+        serviceType: 'Health Package',
+        serviceId: String(pkg._id),
+        name: pkg.name,
+        price: servicePrice,
+      }];
     } else {
-      resolvedServices = await resolveSingleService({ serviceType, testId, radiologyId, packageId });
+      return res.status(400).json({ message: 'Invalid service selection' });
     }
-
-    const hasPackage = resolvedServices.some((item) => item.serviceType === 'Health Package');
-    if (hasPackage && resolvedServices.length > 1) {
-      return res.status(400).json({ message: 'Health packages must be booked individually' });
-    }
-
-    const summary = buildBookingSummary(resolvedServices);
-    const firstLaboratoryService = resolvedServices.find((item) => item.serviceType === 'Laboratory');
 
     const bookingData = {
       patientName: req.body.patientName,
       dob: parsedDob,
       age: req.body.age,
       gender: req.body.gender,
-      mobileNumber: String(mobileNumber || '').trim(),
-      email: normalizedEmail,
+      mobileNumber,
+      email,
       address: req.body.address,
-      serviceType: summary.serviceType,
-      serviceName: summary.serviceName,
-      servicePrice: summary.servicePrice,
+      serviceType: serviceType || 'Laboratory',
+      serviceName,
+      servicePrice,
+      selectedServices,
+      totalAmount: servicePrice,
       homeCollection: req.body.homeCollection !== undefined ? req.body.homeCollection : true,
-      test: firstLaboratoryService?.serviceId || undefined,
-      testName: firstLaboratoryService ? firstLaboratoryService.name : '',
-      testPrice: firstLaboratoryService ? firstLaboratoryService.price : 0,
-      selectedServices: resolvedServices,
+      test: primaryTestId || undefined,
+      testName: primaryTestName,
+      testPrice: primaryTestPrice,
       preferredDate: req.body.preferredDate,
       preferredTime: req.body.preferredTime,
       additionalNotes: req.body.additionalNotes || '',
@@ -254,7 +182,7 @@ const createBooking = async (req, res) => {
       message: 'Booking created successfully',
     });
   } catch (error) {
-    res.status(error?.status || 500).json({ message: error.message || 'Failed to create booking' });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -272,7 +200,6 @@ const getBookings = async (req, res) => {
         { bookingId: { $regex: search, $options: 'i' } },
         { patientName: { $regex: search, $options: 'i' } },
         { mobileNumber: { $regex: search, $options: 'i' } },
-        { serviceName: { $regex: search, $options: 'i' } },
       ];
     }
 
@@ -280,12 +207,12 @@ const getBookings = async (req, res) => {
     const bookings = await Booking.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(parseInt(limit, 10));
+      .limit(parseInt(limit));
 
     res.json({
       bookings,
       total,
-      page: parseInt(page, 10),
+      page: parseInt(page),
       pages: Math.ceil(total / limit),
     });
   } catch (error) {
@@ -496,7 +423,6 @@ const getBookingStats = async (req, res) => {
     const labBookings = await Booking.countDocuments({ ...activeBookingQuery, serviceType: 'Laboratory' });
     const radiologyBookings = await Booking.countDocuments({ ...activeBookingQuery, serviceType: 'Radiology' });
     const healthPackageBookings = await Booking.countDocuments({ ...activeBookingQuery, serviceType: 'Health Package' });
-    const multipleServiceBookings = await Booking.countDocuments({ ...activeBookingQuery, serviceType: 'Multiple Services' });
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -575,7 +501,6 @@ const getBookingStats = async (req, res) => {
       labBookings,
       radiologyBookings,
       healthPackageBookings,
-      multipleServiceBookings,
       sampleCollectionsToday,
       totalRevenue,
       dailyRevenue,
