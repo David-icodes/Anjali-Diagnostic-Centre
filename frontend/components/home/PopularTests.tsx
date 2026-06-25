@@ -100,16 +100,7 @@ export default function PopularTests() {
                   transition={{ duration: 0.2, delay: index * 0.04 }}
                   className="group flex h-[220px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-150 hover:-translate-y-[3px] hover:shadow-lg"
                 >
-                  <div className="mb-3 flex justify-end gap-1.5">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-700">
-                      <Star className="h-3.5 w-3.5" /> POPULAR
-                    </span>
-                    {test.hasOffer ? (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
-                        <BadgePercent className="h-3.5 w-3.5" /> OFFER
-                      </span>
-                    ) : null}
-                  </div>
+                  {/* Badges removed: show only name, price, BOOK */}
 
                   <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">{test.name}</h3>
 

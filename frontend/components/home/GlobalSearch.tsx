@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, Loader2, ArrowRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import api from '@/lib/api'
+import { Button } from '@/components/ui/button'
 
 interface SearchResult {
   _id: string
@@ -182,20 +183,18 @@ export default function GlobalSearch({
                 </div>
               ) : results.length > 0 ? (
                 results.map((result, i) => (
-                  <button
+                  <div
                     key={`${result.serviceType}-${result._id}`}
-                    onClick={() => { openResult(result); setIsOpen(false); setQuery('') }}
                     className={`flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors duration-150 ${selectedIndex === i ? 'bg-[#1BAE9A]/5' : 'hover:bg-gray-50'}`}
                   >
                     <div>
                       <p className="text-sm font-medium text-gray-800">{result.name}</p>
-                      <p className="mt-1 text-xs text-gray-400">{result.serviceType}</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold text-[#1BAE9A]">{formatPrice(result.price)}</span>
-                      <ArrowRight className="h-4 w-4 text-gray-300" />
+                      <Button size="sm" onClick={() => openResult(result)} className="ml-2">BOOK</Button>
                     </div>
-                  </button>
+                  </div>
                 ))
               ) : query.trim() ? (
                 <div className="flex flex-col items-center py-8 text-center">

@@ -71,12 +71,8 @@ export default function RadiologyPage() {
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
                           <h3 className="text-xl font-bold uppercase leading-snug text-slate-900">{service.name}</h3>
-                          <p className="mt-1 text-xs text-slate-400">{service.category || 'Radiology'}</p>
                         </div>
-                        <div className="flex shrink-0 gap-1.5">
-                          {service.isPopular ? <span className="rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700">POPULAR</span> : null}
-                          {service.hasOffer ? <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">OFFER</span> : null}
-                        </div>
+                        {/* Removed popularity/offer badges per design: show only name, price, BOOK */}
                       </div>
                       <div className="mt-6 flex items-end justify-between gap-4">
                         <p className="text-3xl font-bold text-[#3730A3]">{formatPrice(service.price || 0)}</p>
