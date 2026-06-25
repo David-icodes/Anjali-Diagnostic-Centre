@@ -116,7 +116,7 @@ export default function AdminLoginPage() {
             >
               <div>
                 <Input
-                  type="text"
+                  type="text"                                   
                   label="Username or Email"
                   placeholder="Enter username or email"
                   error={errors.username?.message}

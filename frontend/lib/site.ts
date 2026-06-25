@@ -3,7 +3,7 @@ export const BRAND = {
   fullName: 'Anjali Diagnostics Centre',
   tagline: 'Trusted diagnostics for better health',
   logo: '/branding/logo.png',
-  favicon: '/branding/logo.png',
+  favicon: '/favicon.ico',
 }
 
 export const CENTRE_IMAGES = {

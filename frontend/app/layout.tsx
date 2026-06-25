@@ -3,7 +3,6 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import PublicLayout from '@/components/layout/PublicLayout'
-import { BRAND } from '@/lib/site'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -11,26 +10,29 @@ const baseUrl = 'https://www.anjalidiagnostic.com'
 
 export const metadata: Metadata = {
   title: {
-    default: 'Anjali Diagnostic Centre | Diagnostic Lab & Health Checkups in Kukatpally, Hyderabad',
+    default: 'Anjali Diagnostic Centre | Diagnostic Lab in Kukatpally, Hyderabad',
     template: '%s | Anjali Diagnostic Centre',
   },
-  description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad. Trusted diagnostics for better health.',
+  description:
+    'Anjali Diagnostic Centre, Kukatpally, Hyderabad provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, home sample collection, preventive health packages, and accurate reports with quality healthcare services.',
   keywords: [
     'Anjali Diagnostic Centre',
     'Diagnostic Centre Hyderabad',
     'Diagnostic Centre Kukatpally',
-    'Blood Tests Hyderabad',
-    'Medical Laboratory Hyderabad',
-    'Health Checkup Centre',
-    'Radiology Services Hyderabad',
-    'Diagnostic Lab Telangana',
-    'Health Packages Hyderabad',
-    'Diagnostic Services Hyderabad',
-    'Laboratory Services Hyderabad',
+    'Blood Tests',
+    'Health Checkups',
+    'Radiology',
+    'Laboratory Services',
+    'Pathology Lab',
+    'Medical Laboratory',
+    'Diagnostic Lab Hyderabad',
+    'Home Sample Collection',
+    'Health Packages',
   ],
   authors: [{ name: 'Anjali Diagnostic Centre' }],
   creator: 'Anjali Diagnostic Centre',
   publisher: 'Anjali Diagnostic Centre',
+  applicationName: 'Anjali Diagnostics Centre',
   formatDetection: {
     telephone: true,
     email: false,
@@ -41,26 +43,28 @@ export const metadata: Metadata = {
     canonical: baseUrl,
   },
   openGraph: {
-    title: 'Anjali Diagnostic Centre | Diagnostic Lab & Health Checkups in Kukatpally, Hyderabad',
-    description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad.',
+    title: 'Anjali Diagnostic Centre | Diagnostic Lab & Health Checkups',
+    description:
+      'Reliable diagnostic testing, laboratory services, blood tests, radiology, health packages and home sample collection in Kukatpally, Hyderabad.',
     url: baseUrl,
     siteName: 'Anjali Diagnostic Centre',
     locale: 'en_IN',
     type: 'website',
     images: [
       {
-        url: '/branding/logo.png',
-        width: 512,
-        height: 512,
-        alt: 'Anjali Diagnostic Centre',
+        url: `${baseUrl}/branding/logo.png`,
+        width: 256,
+        height: 256,
+        alt: 'Anjali Diagnostics Centre official logo',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Anjali Diagnostic Centre | Diagnostic Lab & Health Checkups in Kukatpally, Hyderabad',
-    description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad.',
-    images: ['/branding/logo.png'],
+    title: 'Anjali Diagnostic Centre | Diagnostic Lab & Health Checkups',
+    description:
+      'Reliable diagnostic testing, laboratory services, blood tests, radiology, health packages and home sample collection in Kukatpally, Hyderabad.',
+    images: [`${baseUrl}/branding/logo.png`],
   },
   robots: {
     index: true,
@@ -71,57 +75,65 @@ export const metadata: Metadata = {
       'max-image-preview': 'large',
     },
   },
+  manifest: '/site.webmanifest',
   icons: {
     icon: [
-      { url: '/branding/logo.png', type: 'image/png', sizes: '512x512' },
       { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/favicon-16x16.png', type: 'image/png', sizes: '16x16' },
     ],
-    shortcut: { url: '/branding/logo.png', type: 'image/png' },
-    apple: [
-      { url: '/branding/logo.png', sizes: '180x180', type: 'image/png' },
-    ],
-    other: [
-      { rel: 'apple-touch-icon-precomposed', url: '/branding/logo.png' },
-    ],
+    shortcut: ['/favicon.ico'],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
   },
 }
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': ['DiagnosticCenter', 'MedicalBusiness', 'MedicalOrganization', 'LocalBusiness'],
-  '@id': `${baseUrl}/#business`,
-  name: 'Anjali Diagnostic Centre',
-  url: baseUrl,
-  legalName: 'Anjali Diagnostics Centre',
-  logo: `${baseUrl}/branding/logo.png`,
-  image: `${baseUrl}/branding/logo.png`,
-  telephone: ['+919989220938', '+919440626892', '+9140147350'],
-  email: 'anjalidiagnostics1602@gmail.com',
-  description: 'Anjali Diagnostic Centre provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, and accurate medical reports in Kukatpally, Hyderabad.',
-  medicalSpecialty: 'Diagnostic',
-  areaServed: { '@type': 'City', name: 'Hyderabad' },
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: 'Plot No. 347, HMT Hills, Opp. Community Hall, Beside Park, Opp. JNTU, Kukatpally',
-    addressLocality: 'Hyderabad',
-    addressRegion: 'Telangana',
-    postalCode: '500085',
-    addressCountry: 'IN',
-  },
-  openingHoursSpecification: [
+  '@graph': [
     {
-      '@type': 'OpeningHoursSpecification',
-      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-      opens: '06:00',
-      closes: '22:00',
+      '@type': 'Organization',
+      '@id': `${baseUrl}/#organization`,
+      name: 'ANJALI DIAGNOSTICS CENTRE',
+      url: baseUrl,
+      logo: `${baseUrl}/branding/logo.png`,
+      image: `${baseUrl}/branding/logo.png`,
+      telephone: '+91 9440626892',
+    },
+    {
+      '@type': ['DiagnosticCenter', 'MedicalOrganization', 'LocalBusiness'],
+      '@id': `${baseUrl}/#diagnostic-centre`,
+      name: 'ANJALI DIAGNOSTICS CENTRE',
+      url: baseUrl,
+      image: `${baseUrl}/branding/logo.png`,
+      logo: `${baseUrl}/branding/logo.png`,
+      telephone: '+91 9440626892',
+      description:
+        'Anjali Diagnostic Centre, Kukatpally, Hyderabad provides reliable diagnostic testing, laboratory services, health checkups, blood tests, radiology services, home sample collection, preventive health packages, and accurate reports with quality healthcare services.',
+      medicalSpecialty: 'Diagnostic',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress:
+          'Plot No. 347, HMT Hills, Opp. Community Hall, Beside Park, Opp. JNTU, Kukatpally',
+        addressLocality: 'Hyderabad',
+        addressRegion: 'Telangana',
+        postalCode: '500085',
+        addressCountry: 'IN',
+      },
+      openingHoursSpecification: [
+        {
+          '@type': 'OpeningHoursSpecification',
+          dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+          opens: '07:00',
+          closes: '21:00',
+        },
+      ],
+      areaServed: {
+        '@type': 'City',
+        name: 'Hyderabad',
+      },
+      sameAs: [baseUrl],
     },
   ],
-  sameAs: [
-    baseUrl,
-  ],
-  founder: { '@type': 'Organization', name: 'Anjali Diagnostic Centre' },
-  foundingDate: '2008',
-  duns: '414/DM & HO/RR/2008',
 }
 
 export default function RootLayout({
