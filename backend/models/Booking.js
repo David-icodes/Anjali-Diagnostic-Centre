@@ -28,10 +28,12 @@ const bookingSchema = mongoose.Schema(
     mobileNumber: {
       type: String,
       required: true,
+      match: [/^\d{10}$/, 'Mobile number must be exactly 10 digits'],
     },
     email: {
       type: String,
-      required: true,
+      default: '',
+      trim: true,
     },
     address: {
       type: String,
@@ -39,7 +41,7 @@ const bookingSchema = mongoose.Schema(
     },
     serviceType: {
       type: String,
-      enum: ['Laboratory', 'Radiology', 'Health Package'],
+      enum: ['Laboratory', 'Radiology', 'Health Package', 'Multiple Services'],
       default: 'Laboratory',
     },
     serviceName: {
@@ -66,6 +68,31 @@ const bookingSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    selectedServices: [
+      {
+        serviceType: {
+          type: String,
+          enum: ['Laboratory', 'Radiology', 'Health Package'],
+          required: true,
+        },
+        serviceId: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true,
+        },
+        name: {
+          type: String,
+          required: true,
+        },
+        price: {
+          type: Number,
+          required: true,
+        },
+        category: {
+          type: String,
+          default: '',
+        },
+      },
+    ],
     preferredDate: {
       type: Date,
       required: true,
@@ -135,6 +162,5 @@ const bookingSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
-
 
 module.exports = mongoose.model('Booking', bookingSchema);

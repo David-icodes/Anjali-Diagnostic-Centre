@@ -3,18 +3,20 @@ const ActivityLog = require('../models/ActivityLog');
 
 const getRadiologyServices = async (req, res) => {
   try {
-    const { isActive, search, page = 1, limit = 10 } = req.query;
+    const { isActive, search, category, page = 1, limit = 10 } = req.query;
     const query = { isDeleted: { $ne: true } };
     if (isActive !== undefined) query.isActive = isActive === 'true';
+    if (req.query.hasOffer !== undefined) query.hasOffer = req.query.hasOffer === 'true';
+    if (category) query.category = category;
     if (search) query.name = { $regex: search, $options: 'i' };
 
     const total = await RadiologyService.countDocuments(query);
     const services = await RadiologyService.find(query)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit, 10));
 
-    res.json({ services, total, page: parseInt(page), pages: Math.ceil(total / limit) });
+    res.json({ services, total, page: parseInt(page, 10), pages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

@@ -17,7 +17,7 @@ const normalizeOfferState = (payload = {}) => {
     ...payload,
     category: payload.category || 'Other',
     originalPrice,
-    offerPrice: hasOffer ? requestedOfferPrice : 0,
+    offerPrice: hasOffer && requestedOfferPrice > 0 && requestedOfferPrice < originalPrice ? requestedOfferPrice : 0,
     hasOffer,
     offerText,
     offerLabel: hasOffer ? offerText : '',
@@ -34,14 +34,7 @@ const getTests = async (req, res) => {
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (req.query.popular !== undefined) query.isPopular = req.query.popular === 'true';
     if (req.query.hasOffer !== undefined) {
-      if (req.query.hasOffer === 'true') {
-        query.$or = [
-          { hasOffer: true },
-          { $expr: { $lt: ['$offerPrice', '$originalPrice'] } },
-        ];
-      } else {
-        query.hasOffer = false;
-      }
+      query.hasOffer = req.query.hasOffer === 'true';
     }
     if (search) {
       query.name = { $regex: search, $options: 'i' };

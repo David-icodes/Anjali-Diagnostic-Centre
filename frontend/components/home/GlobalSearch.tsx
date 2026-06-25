@@ -7,12 +7,11 @@ import { Search, X, Loader2, ArrowRight } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import api from '@/lib/api'
 
-interface Test {
+interface SearchResult {
   _id: string
   name: string
-  price?: number
-  originalPrice?: number
-  offerPrice?: number
+  price: number
+  serviceType: 'Laboratory' | 'Radiology' | 'Health Package'
 }
 
 const commonTests = [
@@ -27,14 +26,14 @@ interface GlobalSearchProps {
 }
 
 export default function GlobalSearch({
-  placeholder = 'Search tests: CBP, Thyroid, Vitamin, Glucose, LFT, MRI, CT Scan...',
+  placeholder = 'Search tests, radiology services, and health packages...',
   className = '',
   compact = false,
 }: GlobalSearchProps) {
   const router = useRouter()
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
-  const [results, setResults] = useState<Test[]>([])
+  const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -45,9 +44,35 @@ export default function GlobalSearch({
     if (!q.trim()) { setResults([]); return }
     setLoading(true)
     try {
-      const res = await api.get(`/tests?search=${encodeURIComponent(q)}&limit=10`)
-      const data = res.data?.tests || res.data || []
-      setResults(Array.isArray(data) ? data : [])
+      const [testsRes, radiologyRes, packagesRes] = await Promise.all([
+        api.get('/tests', { params: { search: q, limit: 6, isActive: true } }),
+        api.get('/radiology', { params: { search: q, limit: 6, isActive: true } }),
+        api.get('/health-packages', { params: { search: q, limit: 6, isActive: true } }),
+      ])
+
+      const tests = (testsRes.data?.tests || testsRes.data || []).map((test: any) => ({
+        _id: test._id,
+        name: test.name,
+        price: test.hasOffer && test.offerPrice > 0 ? test.offerPrice : (test.originalPrice || test.price || 0),
+        serviceType: 'Laboratory' as const,
+      }))
+
+      const radiology = (radiologyRes.data?.services || radiologyRes.data || []).map((service: any) => ({
+        _id: service._id,
+        name: service.name,
+        price: service.price || 0,
+        serviceType: 'Radiology' as const,
+      }))
+
+      const packages = (packagesRes.data?.packages || packagesRes.data || []).map((pkg: any) => ({
+        _id: pkg._id,
+        name: pkg.name,
+        price: pkg.hasOffer && pkg.offerPrice > 0 ? pkg.offerPrice : (pkg.originalPrice || 0),
+        serviceType: 'Health Package' as const,
+      }))
+
+      const merged = [...tests, ...radiology, ...packages]
+      setResults(merged.slice(0, 10))
     } catch {
       setResults([])
     }
@@ -69,23 +94,35 @@ export default function GlobalSearch({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const openResult = (result: SearchResult) => {
+    if (result.serviceType === 'Radiology') {
+      router.push(`/booking?radiology=${result._id}`)
+      return
+    }
+    if (result.serviceType === 'Health Package') {
+      router.push(`/booking?package=${result._id}`)
+      return
+    }
+    router.push(`/booking?test=${result._id}`)
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'ArrowDown') { e.preventDefault(); setSelectedIndex(prev => Math.min(prev + 1, results.length - 1)) }
     else if (e.key === 'ArrowUp') { e.preventDefault(); setSelectedIndex(prev => Math.max(prev - 1, -1)) }
     else if (e.key === 'Enter') {
       e.preventDefault()
       if (selectedIndex >= 0 && results[selectedIndex]) {
-        router.push(`/booking?test=${results[selectedIndex]._id}`)
-        setIsOpen(false); setQuery('')
+        openResult(results[selectedIndex])
+        setIsOpen(false)
+        setQuery('')
       } else if (query.trim()) {
         router.push(`/tests?search=${encodeURIComponent(query)}`)
-        setIsOpen(false); setQuery('')
+        setIsOpen(false)
+        setQuery('')
       }
     }
     else if (e.key === 'Escape') setIsOpen(false)
   }
-
-  const displayPrice = (test: Test) => test.offerPrice ?? test.originalPrice ?? test.price ?? 0
 
   return (
     <div ref={dropdownRef} className={`relative ${className}`}>
@@ -144,15 +181,18 @@ export default function GlobalSearch({
                   <span className="ml-2 text-sm text-gray-400">Searching...</span>
                 </div>
               ) : results.length > 0 ? (
-                results.map((test, i) => (
+                results.map((result, i) => (
                   <button
-                    key={test._id}
-                    onClick={() => { router.push(`/booking?test=${test._id}`); setIsOpen(false); setQuery('') }}
+                    key={`${result.serviceType}-${result._id}`}
+                    onClick={() => { openResult(result); setIsOpen(false); setQuery('') }}
                     className={`flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors duration-150 ${selectedIndex === i ? 'bg-[#1BAE9A]/5' : 'hover:bg-gray-50'}`}
                   >
-                    <p className="text-sm font-medium text-gray-800">{test.name}</p>
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">{result.name}</p>
+                      <p className="mt-1 text-xs text-gray-400">{result.serviceType}</p>
+                    </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-[#1BAE9A]">{formatPrice(displayPrice(test))}</span>
+                      <span className="text-sm font-semibold text-[#1BAE9A]">{formatPrice(result.price)}</span>
                       <ArrowRight className="h-4 w-4 text-gray-300" />
                     </div>
                   </button>
@@ -160,7 +200,7 @@ export default function GlobalSearch({
               ) : query.trim() ? (
                 <div className="flex flex-col items-center py-8 text-center">
                   <Search className="mb-2 h-10 w-10 text-gray-200" />
-                  <p className="text-sm text-gray-400">No tests found for &ldquo;{query}&rdquo;</p>
+                  <p className="text-sm text-gray-400">No results found for &ldquo;{query}&rdquo;</p>
                   <p className="mt-1 text-xs text-gray-300">Try a different search term</p>
                 </div>
               ) : null}
@@ -173,7 +213,7 @@ export default function GlobalSearch({
                   onClick={() => { router.push(`/tests?search=${encodeURIComponent(query)}`); setIsOpen(false) }}
                   className="text-xs font-medium text-[#1BAE9A] hover:underline"
                 >
-                  View all
+                  View lab results
                 </button>
               </div>
             )}

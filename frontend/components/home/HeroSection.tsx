@@ -4,12 +4,27 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowRight } from 'lucide-react'
 import { BRAND, CENTRE_IMAGES } from '@/lib/site'
 import api from '@/lib/api'
+import GlobalSearch from '@/components/home/GlobalSearch'
+
+const departments = [
+  'Blood Test',
+  'Diabetes',
+  'Thyroid',
+  'Liver',
+  'Kidney',
+  'Heart',
+  'Hormones',
+  'Vitamin',
+  'Radiology',
+]
 
 export default function HeroSection() {
+  const router = useRouter()
   const fallbackSlides = [
     { _id: 'fallback-centre', image: CENTRE_IMAGES.heroCentre, title: 'Anjali Diagnostics centre' },
     { _id: 'fallback-lab', image: CENTRE_IMAGES.heroLab, title: 'Anjali Diagnostics laboratory' },
@@ -76,6 +91,29 @@ export default function HeroSection() {
               Accurate laboratory testing, radiology support, and dependable reporting in a clean,
               patient-friendly diagnostic centre in Hyderabad.
             </p>
+
+            <div className="mb-5">
+              <GlobalSearch className="max-w-xl" placeholder="Search blood tests, thyroid, vitamin, MRI, CT scan, and more..." />
+            </div>
+
+            <div className="mb-7 flex flex-wrap gap-2">
+              {departments.map((department) => (
+                <button
+                  key={department}
+                  type="button"
+                  onClick={() => {
+                    if (department === 'Radiology') {
+                      router.push('/booking?department=Radiology')
+                      return
+                    }
+                    router.push(`/booking?department=${encodeURIComponent(department)}`)
+                  }}
+                  className="rounded-full border border-[#14B8A6]/20 bg-white/90 px-3 py-1.5 text-sm font-medium text-[#0F766E] shadow-sm transition hover:border-[#14B8A6] hover:bg-[#14B8A6]/5"
+                >
+                  {department}
+                </button>
+              ))}
+            </div>
 
             <div className="flex flex-wrap gap-3">
               <Link href="/tests">

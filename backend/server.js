@@ -69,14 +69,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
-const limiter = rateLimit({
+const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { message: 'Too many requests, please try again later.' },
+  max: 20,
+  message: { message: 'Too many attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
-app.use('/api', limiter);
+
+app.use('/api/auth/login', authLimiter);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', message: 'Anjali Diagnostic Centre API is running' });

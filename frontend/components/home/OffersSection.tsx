@@ -9,14 +9,15 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import api from '@/lib/api'
 
-interface OfferTest {
+interface OfferItem {
   _id: string
   name: string
-  originalPrice: number
+  price: number
+  serviceType: 'Laboratory' | 'Radiology'
 }
 
 export default function OffersSection() {
-  const [offers, setOffers] = useState<OfferTest[]>([])
+  const [offers, setOffers] = useState<OfferItem[]>([])
   const [loading, setLoading] = useState(true)
   const sectionRef = useRef<HTMLDivElement>(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-80px' })
@@ -25,10 +26,30 @@ export default function OffersSection() {
   useEffect(() => {
     const fetchOffers = async () => {
       try {
-        const { data } = await api.get('/tests', {
-          params: { hasOffer: true, isActive: true, limit: 6 },
-        })
-        setOffers(data?.tests || [])
+        const [testsRes, radiologyRes] = await Promise.all([
+          api.get('/tests', {
+            params: { hasOffer: true, isActive: true, limit: 6 },
+          }),
+          api.get('/radiology', {
+            params: { hasOffer: true, isActive: true, limit: 6 },
+          }),
+        ])
+
+        const testOffers = (testsRes.data?.tests || []).map((test: any) => ({
+          _id: test._id,
+          name: test.name,
+          price: test.hasOffer && test.offerPrice > 0 ? test.offerPrice : (test.originalPrice || 0),
+          serviceType: 'Laboratory' as const,
+        }))
+
+        const radiologyOffers = (radiologyRes.data?.services || []).map((service: any) => ({
+          _id: service._id,
+          name: service.name,
+          price: service.price || 0,
+          serviceType: 'Radiology' as const,
+        }))
+
+        setOffers([...testOffers, ...radiologyOffers].slice(0, 6))
       } catch {
         setOffers([])
       } finally {
@@ -80,15 +101,18 @@ export default function OffersSection() {
             {offers.map((offer, index) => {
               return (
                 <motion.article
-                  key={offer._id}
+                  key={`${offer.serviceType}-${offer._id}`}
                   initial={{ opacity: 0, y: 16 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
                   transition={{ duration: 0.2, delay: index * 0.04 }}
                   className="group flex h-[240px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-150 hover:-translate-y-[3px] hover:shadow-lg"
                 >
-                  <div className="mb-3 flex justify-end">
+                  <div className="mb-3 flex items-start justify-between gap-3">
                     <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
                       <BadgePercent className="h-3.5 w-3.5" /> OFFER
+                    </span>
+                    <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">
+                      {offer.serviceType}
                     </span>
                   </div>
 
@@ -96,12 +120,12 @@ export default function OffersSection() {
 
                   <div className="mt-auto pt-6">
                     <div className="mb-4 flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-[#0F766E]">{formatPrice(offer.originalPrice)}</span>
+                      <span className="text-2xl font-bold text-[#0F766E]">{formatPrice(offer.price)}</span>
                     </div>
 
                     <Button
                       className="h-10 w-full rounded-full bg-[#14B8A6] text-white shadow-sm transition-all duration-150 hover:bg-[#0F766E]"
-                      onClick={() => router.push(`/booking?test=${offer._id}`)}
+                      onClick={() => router.push(offer.serviceType === 'Radiology' ? `/booking?radiology=${offer._id}` : `/booking?test=${offer._id}`)}
                     >
                       Book Now
                       <ArrowRight className="ml-2 h-4 w-4" />
