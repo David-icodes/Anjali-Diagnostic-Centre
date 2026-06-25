@@ -4,20 +4,24 @@ const normalizeOfferState = (payload = {}) => {
   const originalPrice = Number(payload.originalPrice || 0);
   const requestedOfferPrice = payload.offerPrice !== undefined && payload.offerPrice !== ''
     ? Number(payload.offerPrice)
-    : originalPrice;
+    : 0;
 
   const inferredOffer = requestedOfferPrice > 0 && requestedOfferPrice < originalPrice;
   const hasOffer = payload.hasOffer !== undefined
     ? String(payload.hasOffer) === 'true' || payload.hasOffer === true
     : inferredOffer;
 
+  const offerText = String(payload.offerText || payload.offerBadge || payload.offerLabel || '').trim();
+
   return {
     ...payload,
+    category: payload.category || 'Other',
     originalPrice,
-    offerPrice: hasOffer ? requestedOfferPrice : originalPrice,
+    offerPrice: hasOffer ? requestedOfferPrice : 0,
     hasOffer,
-    offerLabel: hasOffer ? String(payload.offerLabel || '').trim() : '',
-    offerBadge: hasOffer ? String(payload.offerBadge || '').trim() : '',
+    offerText,
+    offerLabel: hasOffer ? offerText : '',
+    offerBadge: hasOffer ? offerText : '',
   };
 };
 

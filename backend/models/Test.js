@@ -9,7 +9,7 @@ const testSchema = mongoose.Schema(
     },
     category: {
       type: String,
-      required: true,
+      default: 'Other',
       enum: [
         'Blood Test',
         'Urine Test',

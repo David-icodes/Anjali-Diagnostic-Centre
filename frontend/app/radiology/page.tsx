@@ -3,40 +3,20 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Scan, Brain, Heart, Activity, Sparkles, ChevronRight, ArrowRight } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import Footer from '@/components/layout/Footer'
 import PageTransition from '@/components/layout/PageTransition'
 import { Button } from '@/components/ui/button'
+import { formatPrice } from '@/lib/utils'
 import api from '@/lib/api'
-
-const iconMap: Record<string, any> = {
-  'MRI': Brain,
-  'MRI 3T': Brain,
-  'CT': Scan,
-  'PET': Scan,
-  'Ultrasound': Heart,
-  'X-Ray': Activity,
-  'Mammography': Scan,
-  'Nuclear': Heart,
-  'General': Scan,
-}
-
-function getIcon(name: string) {
-  for (const [key, icon] of Object.entries(iconMap)) {
-    if (name.toLowerCase().includes(key.toLowerCase())) return icon
-  }
-  return Scan
-}
-
-const colorPalette = ['#1BAE9A', '#4CAF50', '#0D47A1', '#00B8A9', '#6366f1', '#e91e63']
 
 export default function RadiologyPage() {
   const [services, setServices] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    api.get('/radiology?isActive=true')
-      .then(res => {
+    api.get('/radiology', { params: { isActive: true } })
+      .then((res) => {
         const data = res.data?.services || res.data || []
         setServices(Array.isArray(data) ? data : [])
       })
@@ -46,82 +26,60 @@ export default function RadiologyPage() {
 
   return (
     <>
-      <main className="min-h-screen">
+      <main className="min-h-screen bg-[#F8FAFC]">
         <PageTransition>
-          <section className="relative overflow-hidden bg-gradient-to-br from-[#4CAF50] to-[#388E3C] min-h-[30vh] flex items-center">
-            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />
-            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[80px]" />
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 w-full relative">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 text-white/90 text-sm font-medium mb-6 border border-white/20">
-                  <Sparkles className="w-4 h-4" /> Radiology Services
+          <section className="relative flex min-h-[28vh] items-center overflow-hidden bg-gradient-to-br from-[#0F766E] via-[#14B8A6] to-[#2DD4BF]">
+            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.04]" />
+            <div className="relative mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+              <div className="max-w-3xl">
+                <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm font-medium text-white/90 backdrop-blur-sm">
+                  <Sparkles className="h-4 w-4" /> Radiology Services
                 </div>
-                <h1 className="text-4xl sm:text-5xl font-bold text-white leading-tight mb-4">
-                  Radiology & Imaging
-                </h1>
-                <p className="text-lg text-white/80 max-w-xl mx-auto">
-                  Advanced imaging services with expert radiologists
-                </p>
-              </motion.div>
+                <h1 className="text-4xl font-bold leading-tight text-white sm:text-5xl">Simple, clearly priced radiology services</h1>
+                <p className="mt-4 max-w-2xl text-base text-white/80 sm:text-lg">The same clean layout as laboratory services: name, price, and book now.</p>
+              </div>
             </div>
           </section>
 
-          <section className="py-16 bg-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <section className="py-10 sm:py-12 lg:py-14">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               {loading ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
-                      <div className="h-40 bg-gray-100" />
-                      <div className="p-5 space-y-3">
-                        <div className="h-5 bg-gray-100 rounded w-3/4" />
-                        <div className="h-4 bg-gray-100 rounded w-full" />
-                        <div className="h-4 bg-gray-100 rounded w-1/2" />
-                      </div>
-                    </div>
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <div key={index} className="h-44 animate-pulse rounded-[20px] border border-slate-200 bg-white" />
                   ))}
                 </div>
               ) : services.length === 0 ? (
-                <div className="text-center py-20">
-                  <p className="text-gray-400 text-lg">No radiology services available at the moment.</p>
+                <div className="rounded-[24px] border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-sm">
+                  <p className="text-lg text-slate-500">No radiology services available at the moment.</p>
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {services.map((service, i) => {
-                    const Icon = getIcon(service.name)
-                    const color = colorPalette[i % colorPalette.length]
-                    return (
-                      <motion.div
-                        key={service._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.05 }}
-                        className="group bg-white rounded-2xl border border-gray-100 overflow-hidden card-hover"
-                      >
-                        <div className="h-40 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-                          <div className="w-20 h-20 rounded-2xl flex items-center justify-center" style={{ backgroundColor: color + '15' }}>
-                            <Icon className="w-10 h-10" style={{ color }} />
-                          </div>
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {services.map((service, index) => (
+                    <motion.article
+                      key={service._id}
+                      initial={{ opacity: 0, y: 12 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.15, delay: (index % 12) * 0.02 }}
+                      className="flex min-h-[180px] flex-col justify-between rounded-[20px] border border-slate-200 bg-white p-6 shadow-[0_12px_28px_rgba(15,23,42,0.05)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,118,110,0.10)]"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <h3 className="text-xl font-bold uppercase leading-snug text-slate-900">{service.name}</h3>
+                        <div className="flex shrink-0 gap-1.5">
+                          {service.isPopular ? <span className="rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700">POPULAR</span> : null}
+                          {service.hasOffer ? <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">OFFER</span> : null}
                         </div>
-                        <div className="p-5">
-                          <h3 className="text-lg font-bold text-gray-900 mb-2">{service.name}</h3>
-                          <p className="text-sm text-gray-500 mb-3 leading-relaxed line-clamp-3">{service.description}</p>
-                          <p className="text-lg font-bold text-gray-900 mb-4">₹{service.price?.toLocaleString('en-IN')}</p>
-                          {service.duration && (
-                            <p className="text-xs text-gray-400 mb-4">Duration: {service.duration}</p>
-                          )}
-                          <div className="flex gap-2">
-                            <Link href="/booking">
-                              <Button size="sm" className="bg-[#1BAE9A] hover:bg-[#168E7E] text-white text-xs">Book Now</Button>
-                            </Link>
-                            <Link href="/contact">
-                              <Button variant="outline" size="sm" className="text-xs border-gray-200">Know More</Button>
-                            </Link>
-                          </div>
-                        </div>
-                      </motion.div>
-                    )
-                  })}
+                      </div>
+                      <div className="mt-6 flex items-end justify-between gap-4">
+                        <p className="text-3xl font-bold text-[#3730A3]">{formatPrice(service.price || 0)}</p>
+                        <Link href={`/booking?radiology=${service._id}`}>
+                          <Button className="h-10 rounded-xl border border-[#14B8A6] bg-white px-4 text-sm font-bold text-[#14B8A6] shadow-none transition hover:bg-[#14B8A6] hover:text-white">
+                            BOOK
+                          </Button>
+                        </Link>
+                      </div>
+                    </motion.article>
+                  ))}
                 </div>
               )}
             </div>

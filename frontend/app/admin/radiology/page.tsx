@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { motion } from 'framer-motion'
-import { Plus, Pencil, Trash2, Power, PowerOff, Search, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Plus, Pencil, Trash2, Power, PowerOff, Search, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -11,23 +10,19 @@ import { formatPrice } from '@/lib/utils'
 import api from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
 import DataTable, { Column } from '@/components/admin/DataTable'
 import StatusBadge from '@/components/admin/StatusBadge'
 
 const radiologySchema = z.object({
   name: z.string().min(2, 'Name is required'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
   price: z.coerce.number().min(1, 'Price is required'),
-  category: z.string().optional(),
-  preparationInstructions: z.string().optional(),
-  duration: z.string().optional(),
   isActive: z.boolean().optional(),
+  isPopular: z.boolean().optional(),
+  hasOffer: z.boolean().optional(),
 })
 
 type RadiologyFormData = z.infer<typeof radiologySchema>
@@ -35,16 +30,12 @@ type RadiologyFormData = z.infer<typeof radiologySchema>
 interface RadiologyService {
   _id: string
   name: string
-  description: string
   price: number
-  category: string
-  preparationInstructions?: string
-  duration?: string
   isActive: boolean
+  isPopular: boolean
+  hasOffer: boolean
   createdAt: string
 }
-
-const categories = ['MRI', 'MRI 3T', 'CT Scan', 'PET CT', 'Ultrasound', 'X-Ray', 'Mammography', 'DEXA Scan', 'General']
 
 export default function RadiologyPage() {
   const [services, setServices] = useState<RadiologyService[]>([])
@@ -59,8 +50,11 @@ export default function RadiologyPage() {
 
   const form = useForm<RadiologyFormData>({
     resolver: zodResolver(radiologySchema),
-    defaultValues: { name: '', description: '', price: 0, category: '', isActive: true },
+    defaultValues: { name: '', price: 0, isActive: true, isPopular: false, hasOffer: false },
   })
+
+  const watchIsPopular = form.watch('isPopular')
+  const watchHasOffer = form.watch('hasOffer')
 
   const fetchData = useCallback(async () => {
     try {
@@ -81,23 +75,30 @@ export default function RadiologyPage() {
 
   const openAdd = () => {
     setEditing(null)
-    form.reset({ name: '', description: '', price: 0, category: '', isActive: true })
+    form.reset({ name: '', price: 0, isActive: true, isPopular: false, hasOffer: false })
     setDialogOpen(true)
   }
 
-  const openEdit = (s: RadiologyService) => {
-    setEditing(s)
-    form.reset({ name: s.name, description: s.description, price: s.price, category: s.category, preparationInstructions: s.preparationInstructions || '', duration: s.duration || '', isActive: s.isActive })
+  const openEdit = (service: RadiologyService) => {
+    setEditing(service)
+    form.reset({
+      name: service.name,
+      price: service.price,
+      isActive: service.isActive,
+      isPopular: service.isPopular,
+      hasOffer: service.hasOffer,
+    })
     setDialogOpen(true)
   }
 
   const handleSubmit = async (data: RadiologyFormData) => {
     try {
+      const payload = { ...data }
       if (editing) {
-        await api.put(`/radiology/${editing._id}`, data)
+        await api.put(`/radiology/${editing._id}`, payload)
         toast.success('Service updated')
       } else {
-        await api.post('/radiology', data)
+        await api.post('/radiology', payload)
         toast.success('Service created')
       }
       setDialogOpen(false)
@@ -120,10 +121,10 @@ export default function RadiologyPage() {
     }
   }
 
-  const toggleActive = async (s: RadiologyService) => {
+  const toggleActive = async (service: RadiologyService) => {
     try {
-      await api.put(`/radiology/${s._id}`, { isActive: !s.isActive })
-      toast.success(`Service ${s.isActive ? 'deactivated' : 'activated'}`)
+      await api.put(`/radiology/${service._id}`, { isActive: !service.isActive })
+      toast.success(`Service ${service.isActive ? 'deactivated' : 'activated'}`)
       fetchData()
     } catch {
       toast.error('Failed to toggle')
@@ -132,16 +133,23 @@ export default function RadiologyPage() {
 
   const columns: Column<RadiologyService>[] = [
     { key: 'name', header: 'Name' },
-    { key: 'category', header: 'Category' },
-    { key: 'price', header: 'Price', render: (s) => formatPrice(s.price) },
-    { key: 'isActive', header: 'Status', render: (s) => <StatusBadge status={s.isActive ? 'Active' : 'Inactive'} /> },
+    { key: 'price', header: 'Price', render: (service) => formatPrice(service.price) },
+    {
+      key: 'isPopular', header: 'Popular',
+      render: (service) => service.isPopular ? <Sparkles className="h-4 w-4 text-amber-500" /> : null,
+    },
+    {
+      key: 'hasOffer', header: 'Offer',
+      render: (service) => service.hasOffer ? <span className="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-700">OFFER</span> : null,
+    },
+    { key: 'isActive', header: 'Status', render: (service) => <StatusBadge status={service.isActive ? 'Active' : 'Inactive'} /> },
     {
       key: '_id', header: 'Actions',
-      render: (s) => (
+      render: (service) => (
         <div className="flex gap-1">
-          <button onClick={() => openEdit(s)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 hover:text-brand-600"><Pencil size={16} /></button>
-          <button onClick={() => toggleActive(s)} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"><PowerOff size={16} /></button>
-          <button onClick={() => { setDeleting(s); setDeleteDialogOpen(true) }} className="p-1.5 rounded-lg hover:bg-gray-100 text-red-500"><Trash2 size={16} /></button>
+          <button onClick={() => openEdit(service)} className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100 hover:text-brand-600"><Pencil size={16} /></button>
+          <button onClick={() => toggleActive(service)} className="rounded-lg p-1.5 text-gray-500 hover:bg-gray-100"><PowerOff size={16} /></button>
+          <button onClick={() => { setDeleting(service); setDeleteDialogOpen(true) }} className="rounded-lg p-1.5 text-red-500 hover:bg-gray-100"><Trash2 size={16} /></button>
         </div>
       ),
     },
@@ -150,25 +158,25 @@ export default function RadiologyPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div><h1 className="text-2xl font-bold text-gray-900">Radiology Services</h1><p className="text-gray-500 text-sm mt-1">Manage MRI, CT Scan, X-Ray and other radiology services</p></div>
-        <Button onClick={openAdd} className="gap-2"><Plus className="w-4 h-4" /> Add Service</Button>
+        <div><h1 className="text-2xl font-bold text-gray-900">Radiology Services</h1><p className="mt-1 text-sm text-gray-500">Clean card layout with name, price, and book now.</p></div>
+        <Button onClick={openAdd} className="gap-2"><Plus className="h-4 w-4" /> Add Service</Button>
       </div>
 
       <div className="flex gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-          <input type="text" placeholder="Search services..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="w-full pl-10 pr-4 h-10 rounded-lg border border-input bg-background text-sm" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+          <input type="text" placeholder="Search services..." value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} className="h-10 w-full rounded-lg border border-input bg-background pl-10 pr-4 text-sm" />
         </div>
       </div>
 
       <Card><CardContent className="p-0">
         <DataTable columns={columns} data={services} loading={loading} />
         {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-4 border-t">
+          <div className="flex items-center justify-between border-t px-6 py-4">
             <span className="text-sm text-gray-500">Page {page} of {totalPages}</span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}><ChevronLeft className="w-4 h-4 mr-1" /> Prev</Button>
-              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next <ChevronRight className="w-4 h-4 ml-1" /></Button>
+              <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage((current) => Math.max(1, current - 1))}><ChevronLeft className="mr-1 h-4 w-4" /> Prev</Button>
+              <Button variant="outline" size="sm" disabled={page >= totalPages} onClick={() => setPage((current) => current + 1)}>Next <ChevronRight className="ml-1 h-4 w-4" /></Button>
             </div>
           </div>
         )}
@@ -176,23 +184,26 @@ export default function RadiologyPage() {
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>{editing ? 'Edit Service' : 'Add Service'}</DialogTitle><DialogDescription>Fill in the details below</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? 'Edit Service' : 'Add Service'}</DialogTitle><DialogDescription>Minimal: name, price, Popular toggle, Offer toggle only.</DialogDescription></DialogHeader>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <Input label="Service Name" {...form.register('name')} error={form.formState.errors.name?.message} />
-            <div><Label className="mb-1.5 block">Category</Label>
-              <Select onValueChange={(v) => form.setValue('category', v)} defaultValue={form.getValues('category')}>
-                <SelectTrigger><SelectValue placeholder="Select category" /></SelectTrigger>
-                <SelectContent>{categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-            <Input label="Price" type="number" {...form.register('price')} error={form.formState.errors.price?.message} />
-            <Textarea label="Description" {...form.register('description')} error={form.formState.errors.description?.message} rows={3} />
-            <Textarea label="Preparation Instructions" {...form.register('preparationInstructions')} rows={2} />
-            <Input label="Duration" {...form.register('duration')} placeholder="e.g. 30-45 mins" />
+            <Input label="Price (₹)" type="number" {...form.register('price')} error={form.formState.errors.price?.message} />
+
             <div className="flex items-center gap-2">
-              <Switch checked={form.watch('isActive')} onCheckedChange={(v) => form.setValue('isActive', v)} />
+              <Switch checked={!!watchIsPopular} onCheckedChange={(value) => form.setValue('isPopular', value)} />
+              <Label>Popular</Label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch checked={!!watchHasOffer} onCheckedChange={(value) => form.setValue('hasOffer', value)} />
+              <Label>Offer</Label>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Switch checked={form.watch('isActive')} onCheckedChange={(value) => form.setValue('isActive', value)} />
               <Label>Active</Label>
             </div>
+
             <DialogFooter><Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button><Button type="submit">{editing ? 'Update' : 'Create'}</Button></DialogFooter>
           </form>
         </DialogContent>

@@ -4,7 +4,7 @@ import { Suspense, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Search, X, Sparkles } from 'lucide-react'
+import { Search, X, Sparkles, BadgePercent } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import api from '@/lib/api'
 import Footer from '@/components/layout/Footer'
@@ -137,9 +137,7 @@ function TestsPageContent() {
               ) : (
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {filtered.map((test: any, index: number) => {
-                    const price = test.offerPrice && test.offerPrice > 0 && test.offerPrice < (test.originalPrice || test.price)
-                      ? test.offerPrice
-                      : test.originalPrice || test.price
+                    const price = test.originalPrice || test.price
 
                     return (
                       <motion.article
@@ -149,7 +147,13 @@ function TestsPageContent() {
                         transition={{ duration: 0.15, delay: (index % 12) * 0.02 }}
                         className="flex min-h-[180px] flex-col justify-between rounded-[20px] border border-slate-200 bg-white p-6 shadow-[0_12px_28px_rgba(15,23,42,0.05)] transition duration-150 hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(15,118,110,0.10)]"
                       >
-                        <h3 className="text-2xl font-bold uppercase leading-snug text-slate-900">{test.name}</h3>
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <h3 className="text-2xl font-bold uppercase leading-snug text-slate-900">{test.name}</h3>
+                          <div className="flex shrink-0 gap-1.5">
+                            {test.isPopular ? <span className="rounded-full bg-teal-50 px-2.5 py-0.5 text-xs font-semibold text-teal-700">POPULAR</span> : null}
+                            {test.hasOffer ? <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700">OFFER</span> : null}
+                          </div>
+                        </div>
                         <div className="mt-6 flex items-end justify-between gap-4">
                           <p className="text-4xl font-bold text-[#3730A3]">{formatPrice(price)}</p>
                           <Link href={`/booking?test=${test._id || test.name}`}>

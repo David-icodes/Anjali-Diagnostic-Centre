@@ -2,12 +2,12 @@ const mongoose = require('mongoose');
 
 const radiologyServiceSchema = mongoose.Schema({
   name: { type: String, required: true, trim: true },
-  description: { type: String, required: true },
   price: { type: Number, required: true },
-  category: { type: String, default: 'General' },
-  preparationInstructions: { type: String, default: '' },
-  duration: { type: String, default: '' },
+  category: { type: String, default: 'Other' },
   isActive: { type: Boolean, default: true },
+  isPopular: { type: Boolean, default: false },
+  hasOffer: { type: Boolean, default: false },
+  offerText: { type: String, default: '' },
   isDeleted: { type: Boolean, default: false, index: true },
   deletedAt: { type: Date, default: null },
   deletedBy: {

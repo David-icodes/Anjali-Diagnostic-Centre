@@ -4,12 +4,12 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, Loader2, ArrowRight } from 'lucide-react'
+import { formatPrice } from '@/lib/utils'
 import api from '@/lib/api'
 
 interface Test {
   _id: string
   name: string
-  category: string
   price?: number
   originalPrice?: number
   offerPrice?: number
@@ -150,12 +150,9 @@ export default function GlobalSearch({
                     onClick={() => { router.push(`/booking?test=${test._id}`); setIsOpen(false); setQuery('') }}
                     className={`flex w-full items-center justify-between px-5 py-3.5 text-left transition-colors duration-150 ${selectedIndex === i ? 'bg-[#1BAE9A]/5' : 'hover:bg-gray-50'}`}
                   >
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">{test.name}</p>
-                      <p className="text-xs capitalize text-gray-400">{test.category}</p>
-                    </div>
+                    <p className="text-sm font-medium text-gray-800">{test.name}</p>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-semibold text-[#1BAE9A]">Rs. {displayPrice(test)}</span>
+                      <span className="text-sm font-semibold text-[#1BAE9A]">{formatPrice(displayPrice(test))}</span>
                       <ArrowRight className="h-4 w-4 text-gray-300" />
                     </div>
                   </button>

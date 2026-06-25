@@ -3,21 +3,18 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { useRouter } from 'next/navigation'
-import { Search, ArrowRight, Sparkles } from 'lucide-react'
+import { Search, ArrowRight, Sparkles, Star, BadgePercent } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import api from '@/lib/api'
 
 interface Test {
   _id: string
   name: string
-  category: string
-  description?: string
   originalPrice: number
-  offerPrice?: number
   isPopular: boolean
+  hasOffer?: boolean
 }
 
 export default function PopularTests() {
@@ -60,7 +57,7 @@ export default function PopularTests() {
               Most Popular
             </div>
             <h2 className="text-xl font-bold text-gray-900 sm:text-2xl lg:text-3xl">Popular Tests</h2>
-            <p className="mt-2 text-base text-gray-600">Most Booked Tests</p>
+            <p className="mt-2 text-base text-gray-600">Frequently booked diagnostic services</p>
           </div>
 
           <button
@@ -77,7 +74,7 @@ export default function PopularTests() {
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {Array.from({ length: 3 }).map((_, index) => (
               <div key={index} className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                <Skeleton className="h-[290px] rounded-none" />
+                <Skeleton className="h-[220px] rounded-none" />
               </div>
             ))}
           </div>
@@ -95,54 +92,41 @@ export default function PopularTests() {
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {tests.map((test, index) => {
-              const displayOfferPrice = test.offerPrice ?? test.originalPrice
-              const hasDiscount = displayOfferPrice < test.originalPrice
-
               return (
-                <motion.div
+                <motion.article
                   key={test._id}
                   initial={{ opacity: 0, y: 16 }}
                   animate={isInView ? { opacity: 1, y: 0 } : {}}
                   transition={{ duration: 0.2, delay: index * 0.04 }}
-                  className="group flex h-[280px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-150 hover:-translate-y-[3px] hover:shadow-lg"
+                  className="group flex h-[220px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition-all duration-150 hover:-translate-y-[3px] hover:shadow-lg"
                 >
-                  <div className="flex h-full flex-col p-5">
-                    <div className="mb-3">
-                      <Badge variant="info" className="rounded-full px-2.5 py-1 text-xs">
-                        {test.category}
-                      </Badge>
-                    </div>
-
-                    <h3 className="mb-1 line-clamp-2 text-lg font-semibold text-gray-900">
-                      {test.name}
-                    </h3>
-
-                    <p className="mb-3 line-clamp-2 text-sm leading-5 text-gray-500">
-                      {test.description || 'Reliable diagnostic testing with patient-friendly service and timely reporting.'}
-                    </p>
-
-                    <div className="flex-1" />
-
-                    <div className="mb-3 flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-[#0F766E]">
-                        {formatPrice(displayOfferPrice)}
+                  <div className="mb-3 flex justify-end gap-1.5">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-xs font-semibold text-teal-700">
+                      <Star className="h-3.5 w-3.5" /> POPULAR
+                    </span>
+                    {test.hasOffer ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700">
+                        <BadgePercent className="h-3.5 w-3.5" /> OFFER
                       </span>
-                      {hasDiscount && (
-                        <span className="text-sm text-gray-400 line-through">
-                          {formatPrice(test.originalPrice)}
-                        </span>
-                      )}
+                    ) : null}
+                  </div>
+
+                  <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">{test.name}</h3>
+
+                  <div className="mt-auto pt-6">
+                    <div className="mb-4 flex items-baseline gap-2">
+                      <span className="text-2xl font-bold text-[#0F766E]">{formatPrice(test.originalPrice)}</span>
                     </div>
 
                     <Button
                       className="h-10 w-full rounded-full bg-[#14B8A6] text-white shadow-sm transition-all duration-150 hover:bg-[#0F766E]"
                       onClick={() => router.push(`/booking?test=${test._id}`)}
                     >
-                      Book Test
+                      Book Now
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </Button>
                   </div>
-                </motion.div>
+                </motion.article>
               )
             })}
           </div>

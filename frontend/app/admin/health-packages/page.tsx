@@ -28,7 +28,6 @@ const packageSchema = z.object({
   isPopular: z.boolean().optional(),
   homeCollectionAvailable: z.boolean().optional(),
   labVisitAvailable: z.boolean().optional(),
-  image: z.string().optional(),
   isActive: z.boolean().optional(),
 })
 
@@ -53,7 +52,6 @@ interface HealthPackage {
   isPopular?: boolean
   homeCollectionAvailable?: boolean
   labVisitAvailable?: boolean
-  image?: string
   isActive: boolean
   createdAt: string
 }
@@ -92,7 +90,6 @@ export default function HealthPackagesPage() {
       isPopular: false,
       homeCollectionAvailable: true,
       labVisitAvailable: true,
-      image: '',
       isActive: true,
     },
   })
@@ -152,7 +149,6 @@ export default function HealthPackagesPage() {
       isPopular: false,
       homeCollectionAvailable: true,
       labVisitAvailable: true,
-      image: '',
       isActive: true,
     })
     setDialogOpen(true)
@@ -173,7 +169,6 @@ export default function HealthPackagesPage() {
       isPopular: !!pkg.isPopular,
       homeCollectionAvailable: pkg.homeCollectionAvailable ?? true,
       labVisitAvailable: pkg.labVisitAvailable ?? true,
-      image: pkg.image || '',
       isActive: pkg.isActive,
     })
     setDialogOpen(true)
@@ -236,7 +231,6 @@ export default function HealthPackagesPage() {
         isPopular: !!data.isPopular,
         homeCollectionAvailable: !!data.homeCollectionAvailable,
         labVisitAvailable: !!data.labVisitAvailable,
-        image: data.image || '',
         isActive: !!data.isActive,
         benefits: legacyBenefits,
         includedTests: selectedItems,
@@ -372,10 +366,7 @@ export default function HealthPackagesPage() {
             <DialogDescription>Simplified package form with searchable included items and dynamic homepage/public badges.</DialogDescription>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-5">
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <Input label="Package Name" {...form.register('name')} error={form.formState.errors.name?.message} />
-              <Input label="Image URL" placeholder="https://... (optional)" {...form.register('image')} error={form.formState.errors.image?.message} />
-            </div>
+            <Input label="Package Name" {...form.register('name')} error={form.formState.errors.name?.message} />
 
             <Textarea label="Description" rows={3} {...form.register('description')} error={form.formState.errors.description?.message} />
 

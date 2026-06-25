@@ -23,11 +23,9 @@ const testIcons = [Activity, Heart, Brain, Droplets, Stethoscope, Syringe, Flask
 interface ServiceOption {
   _id: string
   name: string
-  category?: string
   originalPrice?: number
   offerPrice?: number
   price?: number
-  description?: string
 }
 
 const steps = [
@@ -84,14 +82,14 @@ function BookingPageContent() {
       .then(([testsRes, radRes, pkgRes]) => {
         const tests = testsRes.data?.tests || testsRes.data || []
         setAllTests(Array.isArray(tests) ? tests.map((t: any) => ({
-          _id: t._id, name: t.name, category: t.category,
+          _id: t._id, name: t.name,
           originalPrice: t.originalPrice || t.price || 0,
           offerPrice: t.offerPrice || t.discountPrice,
         })) : [])
 
         const rad = radRes.data?.services || radRes.data || []
         setAllRadiology(Array.isArray(rad) ? rad.map((r: any) => ({
-          _id: r._id, name: r.name, category: r.category,
+          _id: r._id, name: r.name,
           originalPrice: r.price || 0, offerPrice: r.price || 0,
         })) : [])
 
@@ -110,7 +108,7 @@ function BookingPageContent() {
             const isRadiology = rad.some((r: any) => r._id === found._id)
             setServiceTab(isPackage ? 'package' : isRadiology ? 'radiology' : 'lab')
             setSelectedService({
-              _id: found._id, name: found.name, category: found.category,
+              _id: found._id, name: found.name,
               originalPrice: found.originalPrice || found.price || 0,
               offerPrice: found.offerPrice || found.discountPrice || found.price,
             })
@@ -281,7 +279,6 @@ function BookingPageContent() {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-sm font-semibold text-gray-800 truncate">{svc.name}</p>
-                                  <p className="text-xs text-gray-500">{svc.category || svc.description || serviceTab === 'package' ? 'Health Package' : ''}</p>
                                 </div>
                                 <div className="text-right shrink-0">
                                   {originalPrice > displayPrice ? (
@@ -315,7 +312,6 @@ function BookingPageContent() {
                         </div>
                         <div>
                           <p className="text-sm font-medium text-gray-900">{serviceName}</p>
-                          <p className="text-xs text-gray-500 capitalize">{serviceTab === 'lab' ? 'Lab Test' : serviceTab === 'radiology' ? 'Radiology' : 'Health Package'}</p>
                         </div>
                         <div className="ml-auto text-right">
                           <p className="text-sm font-bold text-[#1BAE9A]">{formatPrice(servicePrice)}</p>
@@ -449,7 +445,6 @@ function BookingPageContent() {
                           <Activity className="w-5 h-5 text-[#1BAE9A]" />
                           <div>
                             <p className="font-semibold text-gray-900">{serviceName}</p>
-                            <p className="text-xs text-gray-500 capitalize">{serviceTab === 'lab' ? 'Lab Test' : serviceTab === 'radiology' ? 'Radiology' : 'Health Package'}</p>
                           </div>
                           <div className="ml-auto">
                             <p className="text-lg font-bold text-[#1BAE9A]">{formatPrice(servicePrice)}</p>
