@@ -32,6 +32,7 @@ export const loginSchema = z.object({
 export const testSchema = z.object({
   name: z.string().min(2, 'Test name is required'),
   originalPrice: z.coerce.number().min(1, 'Price is required'),
+  category: z.string().min(1, 'Category is required'),
   hasOffer: z.boolean().optional(),
   isActive: z.boolean().optional(),
   isPopular: z.boolean().optional(),
