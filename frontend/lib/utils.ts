@@ -5,8 +5,12 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const API_URL =
+const configuredApiUrl =
   process.env.NEXT_PUBLIC_API_URL || 'https://anjali-diagnostic-centre.onrender.com/api'
+
+// Keep all Axios calls on the backend API namespace, even if a deployment
+// variable is configured with only the Render host.
+export const API_URL = `${configuredApiUrl.replace(/\/+$/, '').replace(/\/api$/, '')}/api`
 
 export const formatPrice = (price: number) => {
   return new Intl.NumberFormat('en-IN', {
