@@ -1,0 +1,93 @@
+const RadiologyService = require('../models/RadiologyService');
+const ActivityLog = require('../models/ActivityLog');
+
+const getRadiologyServices = async (req, res) => {
+  try {
+    const { isActive, search, category, page = 1, limit = 10 } = req.query;
+    const query = { isDeleted: { $ne: true } };
+    if (isActive !== undefined) query.isActive = isActive === 'true';
+    if (req.query.hasOffer !== undefined) query.hasOffer = req.query.hasOffer === 'true';
+    if (category) query.category = category;
+    if (search) query.name = { $regex: search, $options: 'i' };
+
+    const total = await RadiologyService.countDocuments(query);
+    const services = await RadiologyService.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit, 10));
+
+    res.json({ services, total, page: parseInt(page, 10), pages: Math.ceil(total / limit) });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const getRadiologyServiceById = async (req, res) => {
+  try {
+    const service = await RadiologyService.findById(req.params.id);
+    if (service) res.json(service);
+    else res.status(404).json({ message: 'Radiology service not found' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const createRadiologyService = async (req, res) => {
+  try {
+    const service = await RadiologyService.create(req.body);
+    await ActivityLog.create({
+      user: req.user._id,
+      username: req.user.name,
+      action: 'Radiology Service Created',
+      details: `Created radiology service: ${service.name}`,
+      ipAddress: req.ip,
+    });
+    res.status(201).json(service);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const updateRadiologyService = async (req, res) => {
+  try {
+    const service = await RadiologyService.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!service) return res.status(404).json({ message: 'Radiology service not found' });
+    await ActivityLog.create({
+      user: req.user._id,
+      username: req.user.name,
+      action: 'Radiology Service Updated',
+      details: `Updated radiology service: ${service.name}`,
+      ipAddress: req.ip,
+    });
+    res.json(service);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+const deleteRadiologyService = async (req, res) => {
+  try {
+    const service = await RadiologyService.findById(req.params.id);
+    if (!service) return res.status(404).json({ message: 'Radiology service not found' });
+    service.isActive = false;
+    service.isDeleted = true;
+    service.deletedAt = new Date();
+    service.deletedBy = {
+      userId: req.user?._id || null,
+      username: req.user?.name || req.user?.username || '',
+    };
+    await service.save();
+    await ActivityLog.create({
+      user: req.user._id,
+      username: req.user.name,
+      action: 'Radiology Service Deactivated',
+      details: `Deactivated radiology service: ${service.name}`,
+      ipAddress: req.ip,
+    });
+    res.json({ message: 'Radiology service deactivated successfully', service });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = { getRadiologyServices, getRadiologyServiceById, createRadiologyService, updateRadiologyService, deleteRadiologyService };

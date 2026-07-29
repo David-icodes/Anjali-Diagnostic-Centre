@@ -1,0 +1,187 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { usePathname } from 'next/navigation'
+import { Menu, ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import MobileNav from './MobileNav'
+import { BRAND } from '@/lib/site'
+import GlobalSearch from '@/components/home/GlobalSearch'
+
+const navLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/about', label: 'About Us' },
+  { href: '/tests', label: 'Laboratory Services' },
+  { href: '/radiology', label: 'Radiology Services' },
+  { href: '/health-packages', label: 'Health Packages' },
+  { href: '/find-a-centre', label: 'Find a Centre' },
+  { href: '/track-order', label: 'Download Report' },
+  { href: '/contact', label: 'Contact' },
+]
+
+const serviceLinks = [
+  { href: '/tests', label: 'Laboratory Services' },
+  { href: '/radiology', label: 'Radiology Services' },
+]
+
+const WHATSAPP_LINK = 'https://wa.me/919440626892'
+const WHATSAPP_LABEL = '9440626892'
+
+function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 32 32" fill="currentColor" aria-hidden="true" className={className}>
+      <path d="M19.11 17.34c-.28-.14-1.64-.81-1.89-.9-.25-.09-.43-.14-.61.14-.18.28-.7.9-.86 1.09-.16.18-.31.21-.58.07-.28-.14-1.16-.43-2.2-1.37-.81-.72-1.35-1.61-1.51-1.88-.16-.28-.02-.42.12-.56.12-.12.28-.31.42-.46.14-.16.18-.28.28-.46.09-.18.05-.35-.02-.49-.07-.14-.61-1.48-.84-2.02-.22-.53-.44-.46-.61-.47h-.52c-.18 0-.46.07-.7.35-.24.28-.92.9-.92 2.2s.94 2.56 1.07 2.74c.14.18 1.85 2.82 4.49 3.95.63.27 1.12.43 1.5.55.63.2 1.2.17 1.65.1.5-.07 1.64-.67 1.87-1.32.23-.65.23-1.21.16-1.32-.06-.12-.24-.19-.52-.33Z" />
+      <path d="M16.01 3.2c-7.05 0-12.77 5.72-12.77 12.77 0 2.24.58 4.43 1.68 6.36L3.2 28.8l6.64-1.69c1.84 1 3.91 1.53 6 1.53h.01c7.04 0 12.95-5.72 12.95-12.77 0-3.42-1.33-6.64-3.75-9.06A12.69 12.69 0 0 0 16.01 3.2Zm-.16 23.28h-.01c-1.9 0-3.76-.51-5.38-1.48l-.38-.22-3.94 1 1.05-3.84-.25-.39a10.57 10.57 0 0 1-1.64-5.62c0-5.86 4.77-10.63 10.64-10.63 2.83 0 5.49 1.1 7.49 3.11 2 2 3.1 4.66 3.1 7.49 0 5.86-4.96 10.58-10.68 10.58Z" />
+    </svg>
+  )
+}
+
+export default function MainNavigation() {
+  const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
+
+  return (
+    <>
+      <header className="sticky top-0 z-50 border-b border-[#DCEFEB] bg-white/95 shadow-[0_8px_20px_rgba(15,118,110,0.06)] backdrop-blur-xl">
+        <div className="border-b border-[#E7F2EF] bg-[#F8FAFC]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="py-4">
+              <div className="flex items-center justify-between gap-3 lg:hidden">
+                <Link href="/" className="flex min-w-0 items-center gap-3">
+                  <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl border border-[#DCEFEB] bg-white shadow-sm">
+                    <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-1.5" sizes="48px" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-bold leading-tight text-gray-900">Anjali Diagnostics Centre</p>
+                    <p className="truncate text-xs font-medium uppercase tracking-[0.18em] text-[#0F766E]">Accurate Diagnostic Care</p>
+                  </div>
+                </Link>
+
+                <div className="flex items-center gap-2">
+                  <a
+                    href={WHATSAPP_LINK}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-full border border-[#DCEFEB] bg-white px-3 py-2 text-sm font-semibold text-[#0F766E] shadow-sm"
+                  >
+                    <WhatsAppIcon className="h-4 w-4 text-[#25D366]" />
+                    {WHATSAPP_LABEL}
+                  </a>
+                  <button
+                    onClick={() => setMobileOpen(true)}
+                    className="rounded-full border border-[#DCEFEB] bg-white p-2 text-[#0F766E] shadow-sm transition-colors hover:bg-[#F0FDFA]"
+                    aria-label="Open menu"
+                  >
+                    <Menu className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-4 lg:hidden">
+                <GlobalSearch compact placeholder="Search for tests and health checkups" />
+              </div>
+
+              <div className="hidden gap-6 lg:flex lg:items-center lg:justify-between">
+                <Link href="/" className="flex shrink-0 items-center gap-3">
+                  <div className="relative h-12 w-12 overflow-hidden rounded-2xl border border-[#DCEFEB] bg-white shadow-sm">
+                    <Image src={BRAND.logo} alt={BRAND.fullName} fill className="object-cover p-1.5" sizes="48px" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold leading-tight text-gray-900 sm:text-xl">Anjali Diagnostics Centre</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.18em] text-[#0F766E]">Accurate Diagnostic Care</p>
+                  </div>
+                </Link>
+
+                <div className="flex-1 lg:max-w-2xl">
+                  <GlobalSearch compact placeholder="Search for tests and health checkups" />
+                </div>
+
+                <a
+                  href={WHATSAPP_LINK}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex shrink-0 items-center gap-3 rounded-2xl border border-[#DCEFEB] bg-white px-4 py-3 shadow-sm transition hover:border-[#25D366]/30 hover:shadow-md"
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#EAFBF1] text-[#25D366]">
+                    <WhatsAppIcon className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-[0.16em] text-gray-400">WhatsApp</p>
+                    <span className="text-base font-semibold text-[#0F766E]">{WHATSAPP_LABEL}</span>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#0F766E]">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="hidden h-12 items-center justify-between gap-1 lg:flex">
+              <div className="flex items-center gap-1">
+                {navLinks.slice(0, 2).map((link) => {
+                  const isActive = pathname === link.href
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        'rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150',
+                        isActive ? 'bg-white text-[#0F766E]' : 'text-white hover:bg-white/10'
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                })}
+                <div className="relative group">
+                  <span className="inline-flex items-center gap-1 rounded-full px-4 py-2 text-sm font-medium text-white cursor-pointer hover:bg-white/10 transition-colors duration-150">
+                    Services <ChevronDown className="h-3.5 w-3.5" />
+                  </span>
+                  <div className="absolute top-full left-0 mt-1 w-56 rounded-xl border border-gray-100 bg-white shadow-lg shadow-gray-200/50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
+                    {serviceLinks.map((link) => (
+                      <Link
+                        key={link.href}
+                        href={link.href}
+                        className={cn(
+                          'block px-4 py-3 text-sm font-medium text-gray-700 transition-colors hover:bg-[#F0FDFA] hover:text-[#0F766E] first:rounded-t-xl last:rounded-b-xl',
+                          pathname === link.href ? 'bg-[#F0FDFA] text-[#0F766E]' : ''
+                        )}
+                      >
+                        {link.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+                {navLinks.slice(4).map((link) => {
+                  const isActive = pathname === link.href
+                  return (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className={cn(
+                        'rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150',
+                        isActive ? 'bg-white text-[#0F766E]' : 'text-white hover:bg-white/10'
+                      )}
+                    >
+                      {link.label}
+                    </Link>
+                  )
+                })}
+              </div>
+              <Link href="/booking">
+                <span className="inline-flex items-center rounded-full bg-white px-5 py-1.5 text-sm font-bold text-[#0F766E] shadow-sm hover:bg-[#E8F8F5] transition-colors duration-150">
+                  BOOK A TEST
+                </span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <MobileNav isOpen={mobileOpen} onClose={() => setMobileOpen(false)} navLinks={navLinks} />
+    </>
+  )
+}
